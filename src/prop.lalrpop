@@ -1,0 +1,84 @@
+// Bah humbug the auto-generated sources have comments above this comment.
+// #![allow(clippy::all)]
+use crate::lex;
+use crate::ast::{Prop, Expr, Binding, Typ};
+use std::rc::Rc;
+grammar<'a>;
+
+extern {
+  type Location = usize;
+  type Error = lex::LexicalError;
+
+  enum lex::Token<'a> {
+	"⊥" => lex::Token::Bot,
+	"." => lex::Token::Dot,
+	"≔" => lex::Token::Def,
+	"→" => lex::Token::Arrow,
+	"↔" => lex::Token::Iff,
+	"¬" => lex::Token::Neg,
+	"ⲗ" => lex::Token::Abs,
+	"∧" => lex::Token::Conj,
+	"∨" => lex::Token::Disj,
+	"⊤" => lex::Token::Top,
+	"(" => lex::Token::LParen,
+	")" => lex::Token::RParen,
+	":" => lex::Token::Colon,
+	";" => lex::Token::Semi,
+	name => lex::Token::Name(<&'a str>),
+  }
+}
+
+pub prop = Semi<Binding>;
+
+Binding: Rc<Binding> = {
+  <n:name> ":" <t:Type> "≔" <e:ExprTerm> => Rc::new(Binding::Bind(n.to_string(), Rc::new(e), Some(t))),
+  <n:name> "≔" <e:ExprTerm> => Rc::new(Binding::Bind(n.to_string(), Rc::new(e), None)),
+}
+
+// Currently types can only be added to top-level bindings.
+Type: Typ = {
+  <p: Prop> => Typ::Typ(p),
+}
+
+Semi<T>: Vec<T> = {
+  <v:(<T> ";")*> <t:T?> => match t {
+    None => v,
+    Some(t) => {
+	let mut v = v;
+	v.push(t);
+	v
+    }
+  }
+}
+
+ExprTerm: Expr = {
+  "ⲗ" <n:name> "." <e:ExprTerm> => Expr::Lambda(Rc::new(Binding::Var(n.to_string(), None)), Rc::new(e), None),
+  // wrong...
+  <p:Prop> <e:ExprTerm> => Expr::App(Rc::new(e), Rc::new(Expr::Prop(Rc::new(p)))),
+  <p: Prop> => Expr::Prop(Rc::new(p)),
+}
+
+Prop: Prop = {
+  "¬" <t:BinaryProp> => Prop::Neg(Rc::new(t)),
+  BinaryProp,
+}
+
+BinaryProp: Prop = {
+  <p1:BinaryProp> "∧" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "∨" <p2:Term> => Prop::Or(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "→" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "↔" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(p2)),
+
+  <p1:BinaryProp> "∧" "¬" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "∨" "¬" <p2:Term> => Prop::Or(Rc::new(p1),  Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "→" "¬" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "↔" "¬" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  Term,
+}
+
+Term: Prop = {
+  "⊤" => Prop::True,
+  "(" <p:Prop> ")" => p,
+  <n:name> => Prop::Var(n.to_string()),
+};
+
