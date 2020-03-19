@@ -101,6 +101,7 @@ enum _Token_ {
     // \x{1d62}-\x{1d6a}
     #[regex = r"[\\a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
     FancyName,
+
     #[token = ":"]
     Colon,
 

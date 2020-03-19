@@ -46,6 +46,7 @@ impl fmt::Display for Binding {
         }
     }
 }
+
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
@@ -57,6 +58,7 @@ impl fmt::Display for Expr {
         }
     }
 }
+
 impl fmt::Display for Prop {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

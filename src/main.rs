@@ -8,10 +8,7 @@ mod test_util;
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
 use error::*;
-
 use std::io::Read;
-//use std::rc::Rc;
-
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
