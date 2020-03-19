@@ -162,43 +162,35 @@ impl<'a> Iterator for Tokens<'a> {
     type Item = Spanned<Token<'a>, usize, LexicalError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        const fn tok<'a>(
-            range: Range<usize>,
-            t: Token<'a>,
-        ) -> Option<Spanned<Token<'a>, usize, LexicalError>> {
-            Some(Ok((range.start, t, range.end)))
-        };
-
         let lex = &mut self.0;
         let range = lex.range();
+        let ok = |tok: Token<'a>| Ok((range.start, tok, range.end));
         let token = loop {
             match &lex.token {
-                _Token_::Whitespace | _Token_::Comment => {
-                    lex.advance();
-                    continue;
-                }
+                _Token_::Whitespace | _Token_::Comment => lex.advance(),
                 _Token_::EOF => return None,
-                _Token_::Name => break tok(range, Token::Name(lex.slice())),
-                _Token_::FancyName => break tok(range, Token::Name(lex.slice())),
-                _Token_::LexError => break Some(Err(LexicalError(range))),
+                _Token_::LexError => break Err(LexicalError(range)),
+                #[rustfmt::skip]
+                _Token_::Name      => break ok(Token::Name(lex.slice())),
+                _Token_::FancyName => break ok(Token::Name(lex.slice())),
                 // And the rest are all unary members
-                _Token_::Dot => break tok(range, Token::Dot),
-                _Token_::Abs => break tok(range, Token::Abs),
-                _Token_::Bot => break tok(range, Token::Bot),
-                _Token_::Top => break tok(range, Token::Top),
-                _Token_::Neg => break tok(range, Token::Neg),
-                _Token_::Iff => break tok(range, Token::Iff),
-                _Token_::Def => break tok(range, Token::Def),
-                _Token_::Disj => break tok(range, Token::Disj),
-                _Token_::Conj => break tok(range, Token::Conj),
-                _Token_::Semi => break tok(range, Token::Semi),
-                _Token_::Arrow => break tok(range, Token::Arrow),
-                _Token_::Colon => break tok(range, Token::Colon),
-                _Token_::LParen => break tok(range, Token::LParen),
-                _Token_::RParen => break tok(range, Token::RParen),
+                _Token_::Dot => break ok(Token::Dot),
+                _Token_::Abs => break ok(Token::Abs),
+                _Token_::Bot => break ok(Token::Bot),
+                _Token_::Top => break ok(Token::Top),
+                _Token_::Neg => break ok(Token::Neg),
+                _Token_::Iff => break ok(Token::Iff),
+                _Token_::Def => break ok(Token::Def),
+                _Token_::Disj => break ok(Token::Disj),
+                _Token_::Conj => break ok(Token::Conj),
+                _Token_::Semi => break ok(Token::Semi),
+                _Token_::Arrow => break ok(Token::Arrow),
+                _Token_::Colon => break ok(Token::Colon),
+                _Token_::LParen => break ok(Token::LParen),
+                _Token_::RParen => break ok(Token::RParen),
             }
         };
         lex.advance();
-        token
+        Some(token)
     }
 }

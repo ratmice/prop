@@ -26,6 +26,7 @@ pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>>
         Err(errors)
     }
 }
+
 // FIXME these 2 and print_errors can involve less duplication of slightly different code
 // The difference: stdout vs stderr and ColorChoice::Never vs structopt which
 // causes problems with cargo test implicit arguments.
