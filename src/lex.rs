@@ -34,8 +34,17 @@ enum _Token_ {
     #[token = "≔"]
     Def,
 
+    // FIXME pick only one of these.
+    // perhaps we can do some proc-macro stuff to choose from a map file.
+    // having multiple tokens here impedes it from being a single bijection
+    // so we either need to pick one, or build a way to deal with multiple bijections.
+    //
+    // I find -> harder to type even though its standard, readable, and shorter.
+    // So choosing \to for now, but that is not a good argument for it
+    // being the default.
+    //
+    // #[token = "->"]
     #[token = r"\to"]
-    #[token = "->"]
     #[token = "→"]
     Arrow,
 
@@ -73,7 +82,8 @@ enum _Token_ {
     #[token = ")"]
     RParen,
 
-    #[regex = r"[\\a-zA-Z][_a-zA-Z0-9]*"]
+    // Name ↔ Name
+    #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
     Name,
 
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
@@ -99,8 +109,12 @@ enum _Token_ {
     // \x{2080}-\x{2089}
     // \x{2090}-\x{209c}
     // \x{1d62}-\x{1d6a}
-    #[regex = r"[\\a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
-    FancyName,
+    //
+    // FancyNameAscii ↔ FancyNameUnicode
+    #[regex = r"[\\][a-zA-Z][_a-zA-Z0-9]*"]
+    FancyNameAscii,
+    #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
+    FancyNameUnicode,
 
     #[token = ":"]
     Colon,
@@ -171,9 +185,9 @@ impl<'a> Iterator for Tokens<'a> {
                 _Token_::Whitespace | _Token_::Comment => lex.advance(),
                 _Token_::EOF => return None,
                 _Token_::LexError => break Err(LexicalError(range)),
-                #[rustfmt::skip]
-                _Token_::Name      => break ok(Token::Name(lex.slice())),
-                _Token_::FancyName => break ok(Token::Name(lex.slice())),
+                _Token_::Name => break ok(Token::Name(lex.slice())),
+                _Token_::FancyNameAscii => break ok(Token::Name(lex.slice())),
+                _Token_::FancyNameUnicode => break ok(Token::Name(lex.slice())),
                 // And the rest are all unary members
                 _Token_::Dot => break ok(Token::Dot),
                 _Token_::Abs => break ok(Token::Abs),

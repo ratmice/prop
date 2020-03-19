@@ -107,6 +107,7 @@ fn fixme() -> Result<(), MainError> {
 fn bad_unicode() -> () {
     let invalid_source = [
         r"ₐₑₒₓₔₕₖₗₘₙₚₛₜ₀₁₂₃₄₅₆₇₈₉ ≔ ⊤", // Subscript cannot be initial character
+        r"\α ≔ ⊤", // Unicode cannot start with slash.
     ];
 
     for s in invalid_source.iter() {
