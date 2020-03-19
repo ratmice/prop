@@ -35,7 +35,7 @@ pub fn expect_success<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Resu
         Ok(()) => Ok(()),
         Err(e) => {
             for (source, error) in e.iter() {
-                let writer = StandardStream::stderr(ColorChoice::Never);
+                let writer = StandardStream::stdout(ColorChoice::Never);
                 let config = codespan_reporting::term::Config::default();
                 let (files, diagnostic) = codespan::codespan("foo", source, error);
 
@@ -57,7 +57,7 @@ pub fn expect_fail<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<
 
         Err(e) => {
             for (source, error) in e.iter() {
-                let writer = StandardStream::stderr(ColorChoice::Never);
+                let writer = StandardStream::stdout(ColorChoice::Never);
                 let config = codespan_reporting::term::Config::default();
                 let (files, diagnostic) = codespan::codespan("foo", source, error);
 
