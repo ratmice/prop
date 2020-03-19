@@ -1,5 +1,27 @@
 use logos::Logos;
+use rowan::SmolStr;
 use std::ops::Range;
+
+impl From<LexToken> for rowan::SyntaxKind {
+    fn from(kind: LexToken) -> Self {
+        Self(kind as u16)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum Lang {}
+impl rowan::Language for Lang {
+    type Kind = LexToken;
+
+    fn kind_from_raw(raw: rowan::SyntaxKind) -> Self::Kind {
+        assert!(raw.0 <= LexToken::Root as u16);
+        unsafe { std::mem::transmute::<u16, LexToken>(raw.0) }
+    }
+
+    fn kind_to_raw(kind: Self::Kind) -> rowan::SyntaxKind {
+        kind.into()
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Token<'a> {
@@ -22,8 +44,15 @@ pub enum Token<'a> {
 
 // Notably absent from the above, present in the below are
 // Whitespace, EOF, LexError
-#[derive(Logos, Debug)]
-enum _Token_ {
+#[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u16)]
+enum LexToken {
+    // Unfortunately Logos derive doesn't let us use
+    // I presume it might be ensuring that itself, and actively stopping
+    // people from doing e.e. EOF = 1 and messing up its internal indexing.
+    // I'm not certain yet whether this is something that can be relied on.
+    //
+    // EOF = 0,
     #[end]
     EOF,
 
@@ -130,13 +159,14 @@ enum _Token_ {
 
     #[error]
     LexError,
+
+    Root,
 }
 
 impl<'a> std::fmt::Display for Token<'a> {
-    #[rustfmt::skip]
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Token::Dot => write!(f, "."), 
+            Token::Dot => write!(f, "."),
             Token::Abs => write!(f, "ⲗ"),
             Token::Bot => write!(f, "⊥"),
             Token::Def => write!(f, "≔"),
@@ -150,7 +180,7 @@ impl<'a> std::fmt::Display for Token<'a> {
             Token::Colon => write!(f, ":"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
-            Token::Name(s)      => write!(f, "{}", s),
+            Token::Name(s) => write!(f, "{}", s),
         }
     }
 }
@@ -164,12 +194,41 @@ impl std::fmt::Display for LexicalError {
     }
 }
 
-pub struct Tokens<'a>(logos::Lexer<_Token_, &'a str>);
+pub struct Tokens<'a>(logos::Lexer<LexToken, &'a str>);
+pub struct TokensRowan<'a>(logos::Lexer<LexToken, &'a str>);
+
 pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 
 impl<'a> Tokens<'a> {
     pub fn from_string(source: &'a str) -> Tokens<'a> {
-        Tokens(_Token_::lexer(source))
+        Tokens(LexToken::lexer(source))
+    }
+}
+
+impl<'a> TokensRowan<'a> {
+    pub fn from_string(source: &'a str) -> TokensRowan<'a> {
+        TokensRowan(LexToken::lexer(source))
+    }
+}
+
+impl<'a> Iterator for TokensRowan<'a> {
+    type Item = Spanned<(rowan::SyntaxKind, SmolStr), usize, LexicalError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let lex = &mut self.0;
+        let range = lex.range();
+        let tok = lex.token;
+        let tok = if LexToken::EOF == tok {
+            None
+        } else {
+            Some(Ok((
+                range.start,
+                (lex.token.into(), lex.slice().into()),
+                range.end,
+            )))
+        };
+        lex.advance();
+        tok
     }
 }
 
@@ -182,27 +241,28 @@ impl<'a> Iterator for Tokens<'a> {
         let ok = |tok: Token<'a>| Ok((range.start, tok, range.end));
         let token = loop {
             match &lex.token {
-                _Token_::Whitespace | _Token_::Comment => lex.advance(),
-                _Token_::EOF => return None,
-                _Token_::LexError => break Err(LexicalError(range)),
-                _Token_::Name => break ok(Token::Name(lex.slice())),
-                _Token_::FancyNameAscii => break ok(Token::Name(lex.slice())),
-                _Token_::FancyNameUnicode => break ok(Token::Name(lex.slice())),
+                LexToken::Whitespace | LexToken::Comment => lex.advance(),
+                LexToken::EOF => return None,
+                LexToken::LexError => break Err(LexicalError(range)),
+                LexToken::Name => break ok(Token::Name(lex.slice())),
+                LexToken::FancyNameAscii => break ok(Token::Name(lex.slice())),
+                LexToken::FancyNameUnicode => break ok(Token::Name(lex.slice())),
                 // And the rest are all unary members
-                _Token_::Dot => break ok(Token::Dot),
-                _Token_::Abs => break ok(Token::Abs),
-                _Token_::Bot => break ok(Token::Bot),
-                _Token_::Top => break ok(Token::Top),
-                _Token_::Neg => break ok(Token::Neg),
-                _Token_::Iff => break ok(Token::Iff),
-                _Token_::Def => break ok(Token::Def),
-                _Token_::Disj => break ok(Token::Disj),
-                _Token_::Conj => break ok(Token::Conj),
-                _Token_::Semi => break ok(Token::Semi),
-                _Token_::Arrow => break ok(Token::Arrow),
-                _Token_::Colon => break ok(Token::Colon),
-                _Token_::LParen => break ok(Token::LParen),
-                _Token_::RParen => break ok(Token::RParen),
+                LexToken::Dot => break ok(Token::Dot),
+                LexToken::Abs => break ok(Token::Abs),
+                LexToken::Bot => break ok(Token::Bot),
+                LexToken::Top => break ok(Token::Top),
+                LexToken::Neg => break ok(Token::Neg),
+                LexToken::Iff => break ok(Token::Iff),
+                LexToken::Def => break ok(Token::Def),
+                LexToken::Disj => break ok(Token::Disj),
+                LexToken::Conj => break ok(Token::Conj),
+                LexToken::Semi => break ok(Token::Semi),
+                LexToken::Arrow => break ok(Token::Arrow),
+                LexToken::Colon => break ok(Token::Colon),
+                LexToken::LParen => break ok(Token::LParen),
+                LexToken::RParen => break ok(Token::RParen),
+                LexToken::Root => unreachable!(),
             }
         };
         lex.advance();

@@ -164,6 +164,18 @@ fn bad_ascii() -> Result<(), &'static str> {
     }
 }
 
+// type SyntaxNode = rowan::SyntaxNode<Lang>;
+// type SyntaxToken = rowan::SyntaxToken<Lang>;
+// type SyntaxElement = rowan::SyntaxElement<Lang>;
+
+fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
+    let tokens = lex::TokensRowan::from_string(&s);
+    for tok in tokens {
+        println!("{:?}", tok);
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), MainError> {
     let mut buf = std::io::BufReader::new(std::io::stdin());
     let mut s = Box::new(String::new());
@@ -171,6 +183,7 @@ fn main() -> Result<(), MainError> {
     // Not really how i'd like this to be.
     buf.read_to_string(&mut s)?;
     let lexer = lex::Tokens::from_string(&s);
+    from_rowan(&s)?;
     let parse_result = parser::propParser::new().parse(lexer);
 
     match parse_result {
