@@ -32,6 +32,14 @@ mod parser {
     pub use prop::*;
 }
 
+mod rowan_parser {
+    // Hack to avoid clippy lints in generated code.
+    #![allow(clippy::all)]
+    use lalrpop_util::lalrpop_mod;
+    lalrpop_mod!(rowan_prop);
+    pub use rowan_prop::*;
+}
+
 fn print_errors<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<(), MainError> {
     match result {
         Ok(()) => Ok(()),
@@ -168,12 +176,34 @@ fn bad_ascii() -> Result<(), &'static str> {
 // type SyntaxToken = rowan::SyntaxToken<Lang>;
 // type SyntaxElement = rowan::SyntaxElement<Lang>;
 
+#[test]
+fn rowan_lex() -> Result<(), error::MainError> {
+    let s = "X := X";
+    let lexer = lex::TokensRowan::from_string(&s);
+    let mut builder = rowan::GreenNodeBuilder::new();
+
+    builder.start_node(lex::LexToken::Root.into());
+    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens)?;
+/*    for thing in lexer {
+        let checkpoint = self.builder.checkpoint();
+        println!("{:?}", thing);
+    }
+*/
+    builder.finish_node();
+    Ok(())
+}
+
 fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
     let tokens = lex::TokensRowan::from_string(&s);
-    for tok in tokens {
-        println!("{:?}", tok);
+    let mut builder = rowan::GreenNodeBuilder::new();
+    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens);
+    match parse_result {
+        Err(e) => {
+            println!("{:?}", e);
+            Err(MainError::SomethingWentAwryAndStuffWasPrinted)
+        }
+        _ => Ok(())
     }
-    Ok(())
 }
 
 fn main() -> Result<(), MainError> {

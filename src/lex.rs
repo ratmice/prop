@@ -9,7 +9,7 @@ impl From<LexToken> for rowan::SyntaxKind {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Lang {}
+pub enum Lang {}
 impl rowan::Language for Lang {
     type Kind = LexToken;
 
@@ -46,7 +46,7 @@ pub enum Token<'a> {
 // Whitespace, EOF, LexError
 #[derive(Logos, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u16)]
-enum LexToken {
+pub enum LexToken {
     // Unfortunately Logos derive doesn't let us use
     // I presume it might be ensuring that itself, and actively stopping
     // people from doing e.e. EOF = 1 and messing up its internal indexing.
@@ -160,6 +160,7 @@ enum LexToken {
     #[error]
     LexError,
 
+    Binder,
     Root,
 }
 
@@ -197,6 +198,11 @@ impl std::fmt::Display for LexicalError {
 pub struct Tokens<'a>(logos::Lexer<LexToken, &'a str>);
 pub struct TokensRowan<'a>(logos::Lexer<LexToken, &'a str>);
 
+#[derive(Debug, Clone)]
+pub enum RowanToken {
+  Token{token: LexToken, string: SmolStr}
+}
+
 pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
 
 impl<'a> Tokens<'a> {
@@ -212,7 +218,7 @@ impl<'a> TokensRowan<'a> {
 }
 
 impl<'a> Iterator for TokensRowan<'a> {
-    type Item = Spanned<(rowan::SyntaxKind, SmolStr), usize, LexicalError>;
+    type Item = Spanned<RowanToken, usize, LexicalError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let lex = &mut self.0;
@@ -223,7 +229,7 @@ impl<'a> Iterator for TokensRowan<'a> {
         } else {
             Some(Ok((
                 range.start,
-                (lex.token.into(), lex.slice().into()),
+                RowanToken::Token{token: lex.token, string: lex.slice().into()},
                 range.end,
             )))
         };
@@ -262,7 +268,7 @@ impl<'a> Iterator for Tokens<'a> {
                 LexToken::Colon => break ok(Token::Colon),
                 LexToken::LParen => break ok(Token::LParen),
                 LexToken::RParen => break ok(Token::RParen),
-                LexToken::Root => unreachable!(),
+                LexToken::Root | LexToken::Binder => unreachable!(),
             }
         };
         lex.advance();
