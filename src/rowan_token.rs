@@ -3,6 +3,10 @@ use logos::Logos;
 use rowan;
 pub struct Tokens<'a>(logos::Lexer<LexToken, &'a str>);
 
+// type SyntaxNode = rowan::SyntaxNode<Lang>;
+// type SyntaxToken = rowan::SyntaxToken<Lang>;
+// type SyntaxElement = rowan::SyntaxElement<Lang>;
+
 impl From<LexToken> for rowan::SyntaxKind {
     fn from(kind: LexToken) -> Self {
         Self(kind as u16)
@@ -60,4 +64,21 @@ impl<'a> Iterator for Tokens<'a> {
         lex.advance();
         tok
     }
+}
+
+#[test]
+fn rowan_lex() -> Result<(), error::MainError> {
+    let s = "X := X";
+    let lexer = token_wrap::TokensRowan::from_string(&s);
+    let mut builder = rowan::GreenNodeBuilder::new();
+
+    builder.start_node(lex::LexToken::Root.into());
+    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens)?;
+    /*    for thing in lexer {
+            let checkpoint = self.builder.checkpoint();
+            println!("{:?}", thing);
+        }
+    */
+    builder.finish_node();
+    Ok(())
 }
