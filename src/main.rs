@@ -92,6 +92,7 @@ fn unicode_vars() -> Result<(), MainError> {
 }
 
 #[test]
+#[ignore]
 fn fixme() -> Result<(), MainError> {
     let source = [
         "", // placeholder,
