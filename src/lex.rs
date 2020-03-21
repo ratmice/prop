@@ -132,4 +132,3 @@ pub enum LexToken {
     Binder,
     Root,
 }
-

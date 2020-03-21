@@ -26,7 +26,10 @@ impl rowan::Language for Lang {
 
 #[derive(Debug, Clone)]
 pub enum TokenWrap {
-  Token{token: LexToken, string: rowan::SmolStr}
+    Token {
+        token: LexToken,
+        string: rowan::SmolStr,
+    },
 }
 
 impl<'a> Tokens<'a> {
@@ -47,7 +50,10 @@ impl<'a> Iterator for Tokens<'a> {
         } else {
             Some(Ok((
                 range.start,
-                TokenWrap::Token{token: lex.token, string: lex.slice().into()},
+                TokenWrap::Token {
+                    token: lex.token,
+                    string: lex.slice().into(),
+                },
                 range.end,
             )))
         };
@@ -55,4 +61,3 @@ impl<'a> Iterator for Tokens<'a> {
         tok
     }
 }
-

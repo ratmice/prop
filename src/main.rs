@@ -3,9 +3,9 @@ mod codespan;
 mod error;
 mod lex;
 mod rowan_token;
-mod token_wrap;
 #[cfg(test)]
 mod test_util;
+mod token_wrap;
 
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
@@ -186,11 +186,11 @@ fn rowan_lex() -> Result<(), error::MainError> {
 
     builder.start_node(lex::LexToken::Root.into());
     let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens)?;
-/*    for thing in lexer {
-        let checkpoint = self.builder.checkpoint();
-        println!("{:?}", thing);
-    }
-*/
+    /*    for thing in lexer {
+            let checkpoint = self.builder.checkpoint();
+            println!("{:?}", thing);
+        }
+    */
     builder.finish_node();
     Ok(())
 }
@@ -204,7 +204,7 @@ fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
             println!("{:?}", e);
             Err(MainError::SomethingWentAwryAndStuffWasPrinted)
         }
-        _ => Ok(())
+        _ => Ok(()),
     }
 }
 
