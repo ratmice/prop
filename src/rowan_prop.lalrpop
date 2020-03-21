@@ -1,20 +1,17 @@
-// Bah humbug the auto-generated sources have comments above this comment.
-// #![allow(clippy::all)]
-use crate::lex;
 use crate::ast::{Prop, Typ};
-use std::rc::Rc;
-
-use lex::RowanToken::Token;
-use lex::LexToken;
+use crate::lex::{LexicalError, LexToken};
 use rowan::{GreenNodeBuilder, SmolStr};
-
+use std::rc::Rc;
+use crate::rowan_token::TokenWrap;
+use TokenWrap::Token;
 grammar<'a>(gb: &mut GreenNodeBuilder<'static>);
+
 
 extern {
   type Location = usize;
-  type Error = lex::LexicalError;
+  type Error = LexicalError;
 
-  enum lex::RowanToken {
+  enum TokenWrap {
   	// I don't know of a way to bind the token: field,
 	// since it's an enum member rather than a type.
 	//

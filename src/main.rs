@@ -2,6 +2,8 @@ mod ast;
 mod codespan;
 mod error;
 mod lex;
+mod rowan_token;
+mod token_wrap;
 #[cfg(test)]
 mod test_util;
 
@@ -120,7 +122,7 @@ fn bad_unicode() -> () {
     ];
 
     for s in invalid_source.iter() {
-        match parser::propParser::new().parse(lex::Tokens::from_string(s)) {
+        match parser::propParser::new().parse(token_wrap::Tokens::from_string(s)) {
             Ok(_) => panic!(format!("accepted '{}'", s)),
             Err(e) => println!("got an expected error: {:?}", e),
         }
@@ -151,7 +153,7 @@ fn bad_ascii() -> Result<(), &'static str> {
 
     let mut num_fail = 0;
     for s in invalid_source.iter() {
-        let lexer = lex::Tokens::from_string(&s);
+        let lexer = token_wrap::Tokens::from_string(&s);
         match parser::propParser::new().parse(lexer) {
             Ok(_) => {
                 // bad
@@ -179,7 +181,7 @@ fn bad_ascii() -> Result<(), &'static str> {
 #[test]
 fn rowan_lex() -> Result<(), error::MainError> {
     let s = "X := X";
-    let lexer = lex::TokensRowan::from_string(&s);
+    let lexer = token_wrap::TokensRowan::from_string(&s);
     let mut builder = rowan::GreenNodeBuilder::new();
 
     builder.start_node(lex::LexToken::Root.into());
@@ -194,7 +196,7 @@ fn rowan_lex() -> Result<(), error::MainError> {
 }
 
 fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
-    let tokens = lex::TokensRowan::from_string(&s);
+    let tokens = rowan_token::Tokens::from_string(&s);
     let mut builder = rowan::GreenNodeBuilder::new();
     let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens);
     match parse_result {
@@ -212,7 +214,7 @@ fn main() -> Result<(), MainError> {
 
     // Not really how i'd like this to be.
     buf.read_to_string(&mut s)?;
-    let lexer = lex::Tokens::from_string(&s);
+    let lexer = token_wrap::Tokens::from_string(&s);
     from_rowan(&s)?;
     let parse_result = parser::propParser::new().parse(lexer);
 
