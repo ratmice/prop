@@ -66,19 +66,31 @@ impl<'a> Iterator for Tokens<'a> {
     }
 }
 
+#[cfg(test)]
+use crate::{error, lex, rowan_parser, test_util};
+
 #[test]
 fn rowan_lex() -> Result<(), error::MainError> {
-    let s = "X := X";
-    let lexer = token_wrap::TokensRowan::from_string(&s);
+    let s = "trivial ≔ ⊤; X ≔ ⊤; Y := Z;";
+    test_util::expect_success(test_util::do_test(&[s]))?;
+
+    let tokens = Tokens::from_string(s);
+    let tokens = tokens.map(|x| {
+        println!("{:?}", x);
+        x
+    });
+
     let mut builder = rowan::GreenNodeBuilder::new();
 
     builder.start_node(lex::LexToken::Root.into());
-    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens)?;
-    /*    for thing in lexer {
-            let checkpoint = self.builder.checkpoint();
-            println!("{:?}", thing);
+    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens);
+    match parse_result {
+        Ok(_) => (),
+        Err(e) => {
+            println!("{:?}", e);
+            return Err(error::MainError::SomethingWentAwryAndStuffWasPrinted);
         }
-    */
+    }
     builder.finish_node();
     Ok(())
 }

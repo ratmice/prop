@@ -64,7 +64,6 @@ impl<'a> Iterator for Tokens<'a> {
                 LexToken::LexError => break Err(LexicalError(range)),
                 LexToken::Name => break ok(Token::Name(lex.slice())),
                 LexToken::FancyNameAscii => break ok(Token::Name(lex.slice())),
-                LexToken::FancyNameUnicode => break ok(Token::Name(lex.slice())),
                 // And the rest are all unary members
                 LexToken::Dot => break ok(Token::Dot),
                 LexToken::Abs => break ok(Token::Abs),

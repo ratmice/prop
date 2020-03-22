@@ -6,7 +6,6 @@ use crate::rowan_token::TokenWrap;
 use TokenWrap::Token;
 grammar<'a>(gb: &mut GreenNodeBuilder<'static>);
 
-
 extern {
   type Location = usize;
   type Error = LexicalError;
@@ -32,14 +31,12 @@ extern {
 	")" => Token{token: LexToken::RParen, string: <SmolStr>},
 	Name => Token{token: LexToken::Name, string: <SmolStr>},
 	FancyNameAscii => Token{token: LexToken::FancyNameAscii, string: <SmolStr>},
-	FancyNameUnicode => Token{token: LexToken::FancyNameUnicode, string: <SmolStr>},
   }
 }
 
 name: (LexToken, SmolStr) = {
   Name => (LexToken::Name.into(), <>),
   FancyNameAscii => (LexToken::FancyNameAscii.into(), <>),
-  FancyNameUnicode => (LexToken::FancyNameUnicode.into(), <>),
 }
 
 pub prop = Semi<Binding>;
@@ -112,5 +109,6 @@ BinaryProp: Prop = {
 Term: Prop = {
   "⊤" => Prop::True,
   "(" <p:Prop> ")" => p,
+  <n:name> => Prop::Var(n.1.into()),
 };
 

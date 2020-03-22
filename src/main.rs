@@ -122,7 +122,12 @@ fn bad_unicode() -> () {
     ];
 
     for s in invalid_source.iter() {
-        match parser::propParser::new().parse(token_wrap::Tokens::from_string(s)) {
+        let tokens = token_wrap::Tokens::from_string(s);
+        let tokens = tokens.map(|x| {
+            println!("{:?}", x);
+            x
+        });
+        match parser::propParser::new().parse(tokens) {
             Ok(_) => panic!(format!("accepted '{}'", s)),
             Err(e) => println!("got an expected error: {:?}", e),
         }
@@ -173,7 +178,6 @@ fn bad_ascii() -> Result<(), &'static str> {
         Err("received valid parse from supposedly invalid source")
     }
 }
-
 
 fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
     let tokens = rowan_token::Tokens::from_string(&s);

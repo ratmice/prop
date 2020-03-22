@@ -80,8 +80,20 @@ pub enum LexToken {
     #[token = ")"]
     RParen,
 
-    // Name ↔ Name
-    #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
+    // Ideally we would have:
+    //   // Name ↔ Name
+    //   #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
+    //   Name,
+    //
+    // as well as
+    //
+    //   // FancyNameUnicode ↔ FancyNameAscii
+    //   #[regex = r"[a-zA-Z ... \p{Greek} ...]"]
+    //   FancyNameUnicode,
+    //
+    // But these regular expressions overlap, and its ambiguous
+    // which one a merely ascii string would match
+    #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
     Name,
 
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
@@ -111,8 +123,6 @@ pub enum LexToken {
     // FancyNameAscii ↔ FancyNameUnicode
     #[regex = r"[\\][a-zA-Z][_a-zA-Z0-9]*"]
     FancyNameAscii,
-    #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
-    FancyNameUnicode,
 
     #[token = ":"]
     Colon,
