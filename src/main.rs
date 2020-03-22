@@ -92,7 +92,7 @@ fn unicode_vars() -> Result<(), MainError> {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(all(test, feature = "ignore_kfail_tests"), ignore)]
 fn fixme() -> Result<(), MainError> {
     let source = [
         "", // placeholder,

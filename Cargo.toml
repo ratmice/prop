@@ -15,5 +15,11 @@ logos-derive = "0.9.7"
 codespan-reporting = "0.9" 
 structopt = "0.3.12"
 
+[features]
+# So this flag allows you to add the #[ignore] attribute at compile time to known failing tests.
+# unless you set this feature, the known failures will still run by default.
+# As per #[ignore] these tests will still be compiled regardless of this setting.
+ignore_kfail_tests = []
+
 [build-dependencies]
 lalrpop = "0.18"
