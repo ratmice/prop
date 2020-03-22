@@ -3,7 +3,7 @@ use logos::Logos;
 use rowan;
 pub struct Tokens<'a>(logos::Lexer<LexToken, &'a str>);
 
-// type SyntaxNode = rowan::SyntaxNode<Lang>;
+pub type SyntaxNode = rowan::SyntaxNode<Lang>;
 // type SyntaxToken = rowan::SyntaxToken<Lang>;
 // type SyntaxElement = rowan::SyntaxElement<Lang>;
 

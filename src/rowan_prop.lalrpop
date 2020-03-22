@@ -1,8 +1,8 @@
 use crate::ast::{Prop, Typ};
 use crate::lex::{LexicalError, LexToken};
-use rowan::{GreenNodeBuilder, SmolStr};
+use rowan::{GreenNode, GreenNodeBuilder, SmolStr};
 use std::rc::Rc;
-use crate::rowan_token::TokenWrap;
+use crate::rowan_token::{TokenWrap, SyntaxNode};
 use TokenWrap::Token;
 grammar<'a>(gb: &mut GreenNodeBuilder<'static>);
 
@@ -39,7 +39,9 @@ name: (LexToken, SmolStr) = {
   FancyNameAscii => (LexToken::FancyNameAscii.into(), <>),
 }
 
-pub prop = Semi<Binding>;
+pub prop: GreenNode = {
+	Semi<Binding> => gb.finish(),
+}
 
 Binding: () = {
   <n:name> ":" <t:Type> "≔" <e:ExprTerm> => {
@@ -61,13 +63,11 @@ Type: Typ = {
   <p: Prop> => Typ::Typ(p),
 }
 
-Semi<T>: Vec<T> = {
+Semi<T>: () = {
   <v:(<T> ";")*> <t:T?> => match t {
-    None => v,
+    None => (),
     Some(t) => {
-	let mut v = v;
-	v.push(t);
-	v
+	()
     }
   }
 }
