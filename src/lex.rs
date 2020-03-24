@@ -1,5 +1,18 @@
-use logos::Logos;
+use logos::{Extras, Logos};
 use std::ops::Range;
+#[derive(Default)]
+struct LexState {
+    current_line: usize,
+}
+
+impl Extras for LexState {
+    fn on_advance(&mut self) {}
+    fn on_whitespace(&mut self, byte: u8) {
+        if byte as char == '\n' {
+            self.current_line += 1;
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Token<'a> {
@@ -23,6 +36,7 @@ pub enum Token<'a> {
 // Notably absent from the above, present in the below are
 // Whitespace, EOF, LexError
 #[derive(Logos, Debug)]
+#[extras = "LexState"]
 enum _Token_ {
     #[end]
     EOF,
@@ -165,7 +179,7 @@ impl std::fmt::Display for LexicalError {
 }
 
 pub struct Tokens<'a>(logos::Lexer<_Token_, &'a str>);
-pub type Spanned<Tok, Loc, Error> = Result<(Loc, Tok, Loc), Error>;
+pub type Spanned<Tok, Loc, Error> = Result<(Loc, (Tok, usize), Loc), Error>;
 
 impl<'a> Tokens<'a> {
     pub fn from_string(source: &'a str) -> Tokens<'a> {
@@ -179,7 +193,8 @@ impl<'a> Iterator for Tokens<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let lex = &mut self.0;
         let range = lex.range();
-        let ok = |tok: Token<'a>| Ok((range.start, tok, range.end));
+        let line = lex.extras.current_line;
+        let ok = |tok: Token<'a>| Ok((range.start, (tok, line), range.end));
         let token = loop {
             match &lex.token {
                 _Token_::Whitespace | _Token_::Comment => lex.advance(),
