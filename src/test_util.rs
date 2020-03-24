@@ -1,5 +1,7 @@
 use crate::codespan;
 use crate::error::*;
+use crate::lex;
+use crate::parser;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 
@@ -7,7 +9,12 @@ pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>>
     let (_pass, fail): (Vec<_>, Vec<_>) = sources
         .iter()
         .enumerate()
-        .map(|(index, s)| (index, { crate::parse_string(s).0 }))
+        .map(|(index, s)| {
+            (
+                index,
+                parser::propParser::new().parse(lex::Tokens::from_string(s)),
+            )
+        })
         .partition(|(_, r)| r.is_ok());
     if fail.is_empty() {
         Ok(())

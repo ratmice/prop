@@ -9,7 +9,6 @@ use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
 use error::*;
 use std::io::Read;
-use std::rc::Rc;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -113,9 +112,9 @@ fn bad_unicode() -> () {
     ];
 
     for s in invalid_source.iter() {
-        match parse_string(s) {
-            (Ok(_), _line) => panic!(format!("accepted '{}'", s)),
-            (Err(e), _line) => println!("got an expected error: {:?}", e),
+        match parser::propParser::new().parse(lex::Tokens::from_string(s)) {
+            Ok(_) => panic!(format!("accepted '{}'", s)),
+            Err(e) => println!("got an expected error: {:?}", e),
         }
     }
 }
@@ -144,13 +143,14 @@ fn bad_ascii() -> Result<(), &'static str> {
 
     let mut num_fail = 0;
     for s in invalid_source.iter() {
-        match parse_string(s) {
-            (Ok(_), _line) => {
+        let lexer = lex::Tokens::from_string(&s);
+        match parser::propParser::new().parse(lexer) {
+            Ok(_) => {
                 // bad
                 println!("parsed but shouldn't: {}", s);
                 num_fail += 1;
             }
-            (Err(e), _line) => {
+            Err(e) => {
                 // good
                 println!("expected error: {}", e);
                 ()
@@ -164,35 +164,14 @@ fn bad_ascii() -> Result<(), &'static str> {
     }
 }
 
-fn parse_string(
-    s: &str,
-) -> (
-    std::result::Result<
-        Vec<Rc<ast::Binding>>,
-        lalrpop_util::ParseError<usize, lex::Token<'_>, lex::LexicalError>,
-    >,
-    usize,
-) {
-    let mut current_line = 0;
-    let tokens = lex::Tokens::from_string(&s);
-    let parse_result = parser::propParser::new().parse(tokens.map(|lex_result| match lex_result {
-        Ok((start, (tok, lex_line), end)) => {
-            current_line = lex_line;
-            Ok((start, tok, end))
-        }
-        Err(lex_error) => Err(lex_error),
-    }));
-    (parse_result, current_line)
-}
-
 fn main() -> Result<(), MainError> {
     let mut buf = std::io::BufReader::new(std::io::stdin());
     let mut s = Box::new(String::new());
 
     // Not really how i'd like this to be.
     buf.read_to_string(&mut s)?;
-
-    let (parse_result, _line) = parse_string(&s);
+    let lexer = lex::Tokens::from_string(&s);
+    let parse_result = parser::propParser::new().parse(lexer);
 
     match parse_result {
         Err(e) => {
