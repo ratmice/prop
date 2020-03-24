@@ -12,6 +12,9 @@ use std::io::Read;
 use std::rc::Rc;
 use structopt::StructOpt;
 
+#[cfg(test)]
+use unindent::unindent;
+
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prop")]
 pub struct Opts {
@@ -52,7 +55,14 @@ fn print_errors<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<(),
 
 #[test]
 fn pretty_errors() -> Result<(), MainError> {
-    let source = ["trivial := ."];
+    let source = [
+        "trivial := .",
+        &unindent(r#"
+            x := x;
+            y := y;
+            lexical_error := .;
+        "#),
+    ];
 
     Ok(test_util::expect_fail(test_util::do_test(&source))?)
 }
@@ -66,10 +76,10 @@ fn stuff() -> Result<(), MainError> {
         "demorgan2 ≔ ¬(A ∧ B) ↔ (¬A) ∨ (¬B)",
         "const: A → B → A ≔ ⲗa. ⲗb. a",
         "flip: (A → B → C) → B → A → C ≔ ⲗf. ⲗb. ⲗa. f a b",
-        r##"
+        &unindent(r##"
             # This is a comment
             A ≔ ⊤
-        "##,
+        "##),
     ];
 
     Ok(test_util::expect_success(test_util::do_test(&source))?)
@@ -125,10 +135,10 @@ fn good_ascii() -> Result<(), MainError> {
     let source = [
         r"id := A \to A",
         r"A := \top",
-        r#"
-        A := \top;
-        B := \top
-        "#,
+        &unindent(r#"
+            A := \top;
+            B := \top
+        "#),
         r"\A := ⊤",
     ];
     Ok(test_util::expect_success(test_util::do_test(&source))?)
