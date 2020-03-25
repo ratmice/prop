@@ -1,3 +1,5 @@
+[![](https://tokei.rs/b1/github/ratmice/prop/)](https://github.com/ratmice/prop/).
+
 ### Prop
 
 name should probably change,
