@@ -1,0 +1,73 @@
+/* Derived from the tutch documentation:
+ * http://www2.tcs.ifi.lmu.de/~abel/tutch/tutch_9.html#SEC25
+ *
+ * Errors in translation are the fault of the translator,
+ * Suitable as input to:
+ * https://www.bottlecaps.de/rr/
+ */
+Id ::= [A-Z][a-zA-z]*
+Prop ::=
+ T
+| F
+| Id
+| "~" Prop
+| Prop "&" Prop
+| Prop "|" Prop
+| Prop "=>" Prop
+| Prop "<=>" Prop
+| "R" (Term) (Term*)
+| "!x:" Type "." Prop       
+| "?x:" Type "." Prop      
+| Prop "<" Prop 
+| Prop "=" Prop 
+
+Var ::= [a-z][a-zA-z0-9]*
+
+Term ::=
+Var
+| "(" Term "," Term")"
+| "fst" Term
+| "snd" Term
+| "case" Term "of" "inl" Var "=>" Term "|" "inr" Var "=>" Term
+| "rec" Term "of" Term "0" "|" Term "(" "s" Term ")" "=>" Term "end"
+| "rec" Term "of" Term "nil" "=>" Term Bar Term "("Term "::" Term")" "=>" Term "end"
+| "inl" Term
+| "inr" Term 
+| "fn" Var "=>" Term
+| Term Term
+| "()"
+| "abort" Term
+| Term ":" Prop
+| "0"
+| "s" Term
+| "true"
+| "false"
+| "if" Term "then" Term "else" Term
+| "nil"
+| Term "::" Term
+| RecList
+| "eq0"
+| "eqS" Term
+| "eqE0S" Term
+| "eqES0" Term
+| "eqESS" Term
+| "less0" Term
+| "lessS" Term
+| "lessE0" Term
+| "lessES" Term
+| "eqTerm"
+| "eqC" Term
+| "eqETermC" Term
+| "eqECTerm" Term
+| "eqECC" Term
+
+H ::= Prop | Term ":" Type
+Hs ::= H | H "," Hs
+E ::= Prop | Term ":" Type | "[" Hs ";" P "]" 
+P ::= E | E ";" P
+
+D ::=
+  "proof" Term ":" Prop "=" "begin" P "end"
+| "term" ID ":" Prop "=" Term
+| "val" ID ":" Type "=" Term
+F ::= | D ";" F
