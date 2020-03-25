@@ -1,16 +1,17 @@
-# Prop (name should probably change)
+### Prop
 
+name should probably change,
 Is intended to be a simplish but relatively complete example for intuitionistic propositional logic.
 It is a work in progress, and not as simple as it should be.
 
-## Under what does it purport to show? 
+##### Under what does it purport to show? 
 
 * integrating the [lalrpop](http://lalrpop.github.io/lalrpop/) parser generator with an external lexer generator.
 * Fancy error messages with [codespan-reporting](https://github.com/brendanzab/codespan).
 * Lexing unicode with [logos](https://github.com/maciejhirsz/logos)
 
 
-## Syntax 
+##### Syntax 
 
 It tries to use a bidirectional Unicode ↔ ASCII syntax,
 This should eventually include a code formatter for converting between character sets.
@@ -18,7 +19,7 @@ This should be bijective in that converting from ASCII → Unicode → ASCII sho
 
 Variables which start with the '\\' character, followed by an ASCII name get mapped to a corresponding Unicode symbol (that cannot start with '\\').
 
-# Future
+##### Future
 
 We strive to keep the codebase simple enough to be used as a parsing example, but if it does not detract from that purpose.
 It may eventually grow to include:
