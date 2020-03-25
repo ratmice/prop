@@ -1,5 +1,6 @@
 use crate::lex;
-pub type Error<'a> = lalrpop_util::ParseError<usize, lex::Token<'a>, lex::LexicalError>;
+use crate::token_wrap;
+pub type Error<'a> = lalrpop_util::ParseError<usize, token_wrap::Token<'a>, lex::LexicalError>;
 
 #[derive(Debug)]
 pub enum MainError {

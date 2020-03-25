@@ -2,8 +2,10 @@ mod ast;
 mod codespan;
 mod error;
 mod lex;
+mod rowan_token;
 #[cfg(test)]
 mod test_util;
+mod token_wrap;
 
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
@@ -33,6 +35,14 @@ mod parser {
     use lalrpop_util::lalrpop_mod;
     lalrpop_mod!(prop);
     pub use prop::*;
+}
+
+mod rowan_parser {
+    // Hack to avoid clippy lints in generated code.
+    #![allow(clippy::all)]
+    use lalrpop_util::lalrpop_mod;
+    lalrpop_mod!(rowan_prop);
+    pub use rowan_prop::*;
 }
 
 fn print_errors<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<(), MainError> {
@@ -122,7 +132,12 @@ fn bad_unicode() -> () {
     ];
 
     for s in invalid_source.iter() {
-        match parser::propParser::new().parse(lex::Tokens::from_string(s)) {
+        let tokens = token_wrap::Tokens::from_string(s);
+        let tokens = tokens.map(|x| {
+            println!("{:?}", x);
+            x
+        });
+        match parser::propParser::new().parse(tokens) {
             Ok(_) => panic!(format!("accepted '{}'", s)),
             Err(e) => println!("got an expected error: {:?}", e),
         }
@@ -153,7 +168,7 @@ fn bad_ascii() -> Result<(), &'static str> {
 
     let mut num_fail = 0;
     for s in invalid_source.iter() {
-        let lexer = lex::Tokens::from_string(&s);
+        let lexer = token_wrap::Tokens::from_string(&s);
         match parser::propParser::new().parse(lexer) {
             Ok(_) => {
                 // bad
@@ -174,13 +189,27 @@ fn bad_ascii() -> Result<(), &'static str> {
     }
 }
 
+fn from_rowan<'a>(s: &'a str) -> Result<(), MainError> {
+    let tokens = rowan_token::Tokens::from_string(&s);
+    let mut builder = rowan::GreenNodeBuilder::new();
+    let parse_result = rowan_parser::propParser::new().parse(&mut builder, tokens);
+    match parse_result {
+        Err(e) => {
+            println!("{:?}", e);
+            Err(MainError::SomethingWentAwryAndStuffWasPrinted)
+        }
+        _ => Ok(()),
+    }
+}
+
 fn main() -> Result<(), MainError> {
     let mut buf = std::io::BufReader::new(std::io::stdin());
     let mut s = Box::new(String::new());
 
     // Not really how i'd like this to be.
     buf.read_to_string(&mut s)?;
-    let lexer = lex::Tokens::from_string(&s);
+    let lexer = token_wrap::Tokens::from_string(&s);
+    from_rowan(&s)?;
     let parse_result = parser::propParser::new().parse(lexer);
 
     match parse_result {

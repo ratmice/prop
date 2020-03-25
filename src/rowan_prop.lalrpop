@@ -1,0 +1,114 @@
+use crate::ast::{Prop, Typ};
+use crate::lex::{LexicalError, LexToken};
+use rowan::{GreenNode, GreenNodeBuilder, SmolStr};
+use std::rc::Rc;
+use crate::rowan_token::{TokenWrap, SyntaxNode};
+use TokenWrap::Token;
+grammar<'a>(gb: &mut GreenNodeBuilder<'static>);
+
+extern {
+  type Location = usize;
+  type Error = LexicalError;
+
+  enum TokenWrap {
+  	// I don't know of a way to bind the token: field,
+	// since it's an enum member rather than a type.
+	//
+	// a workaround seems to be hard coding it in the terminal. 
+	"ⲗ" => Token{token: LexToken::Abs, string: <SmolStr>},
+	"⊥" => Token{token: LexToken::Bot, string: <SmolStr>},
+	"≔" => Token{token: LexToken::Def, string: <SmolStr>},
+	"." => Token{token: LexToken::Dot, string: <SmolStr>},
+	"↔" => Token{token: LexToken::Iff, string: <SmolStr>},
+	"¬" => Token{token: LexToken::Neg, string: <SmolStr>},
+	"⊤" => Token{token: LexToken::Top, string: <SmolStr>},
+	"∧" => Token{token: LexToken::Conj, string: <SmolStr>},
+	"∨" => Token{token: LexToken::Disj, string: <SmolStr>},
+	";" => Token{token: LexToken::Semi, string: <SmolStr>},
+	"→" => Token{token: LexToken::Arrow, string: <SmolStr>},
+	":" => Token{token: LexToken::Colon, string: <SmolStr>},
+	"(" => Token{token: LexToken::LParen, string: <SmolStr>},
+	")" => Token{token: LexToken::RParen, string: <SmolStr>},
+	Name => Token{token: LexToken::Name, string: <SmolStr>},
+	FancyNameAscii => Token{token: LexToken::FancyNameAscii, string: <SmolStr>},
+  }
+}
+
+name: (LexToken, SmolStr) = {
+  Name => (LexToken::Name.into(), <>),
+  FancyNameAscii => (LexToken::FancyNameAscii.into(), <>),
+}
+
+pub prop: GreenNode = {
+	Semi<Binding> => gb.finish(),
+}
+
+Binding: () = {
+  <n:name> ":" <t:Type> "≔" <e:ExprTerm> => {
+	gb.start_node(LexToken::Binder.into());
+	gb.token(n.0.into(), n.1);
+	gb.finish_node()
+	//  Rc::new(Binding::Bind(n.to_string(), Rc::new(e), Some(t))),
+  },
+  <n:name> "≔" <e:ExprTerm> => {
+	gb.start_node(LexToken::Binder.into());
+	gb.token(n.0.into(), n.1);
+	gb.finish_node()
+	// Rc::new(Binding::Bind(n.to_string(), Rc::new(e), None)),
+  }
+}
+
+// Currently types can only be added to top-level bindings.
+Type: Typ = {
+  <p: Prop> => Typ::Typ(p),
+}
+
+Semi<T>: () = {
+  <v:(<T> ";")*> <t:T?> => match t {
+    None => (),
+    Some(t) => {
+	()
+    }
+  }
+}
+
+ExprTerm: () = {
+  "ⲗ" <n:name> "." <e:ExprTerm> => {
+  
+	gb.start_node(LexToken::Abs.into());
+	gb.start_node(LexToken::Binder.into());
+	gb.token(n.0.into(), n.1);
+	gb.finish_node();
+	gb.finish_node();
+
+      // Expr::Lambda(Rc::new(Binding::Var(n.to_string(), None)), Rc::new(e), None),
+  },
+  // wrong...
+  <p:Prop> <e:ExprTerm> => (), // Expr::App(Rc::new(e), Rc::new(Expr::Prop(Rc::new(p)))),
+  <p: Prop> => (), // Expr::Prop(Rc::new(p)),
+}
+
+Prop: Prop = {
+  "¬" <t:BinaryProp> => Prop::Neg(Rc::new(t)),
+  BinaryProp,
+}
+
+BinaryProp: Prop = {
+  <p1:BinaryProp> "∧" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "∨" <p2:Term> => Prop::Or(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "→" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(p2)),
+  <p1:BinaryProp> "↔" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(p2)),
+
+  <p1:BinaryProp> "∧" "¬" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "∨" "¬" <p2:Term> => Prop::Or(Rc::new(p1),  Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "→" "¬" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  <p1:BinaryProp> "↔" "¬" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
+  Term,
+}
+
+Term: Prop = {
+  "⊤" => Prop::True,
+  "(" <p:Prop> ")" => p,
+  <n:name> => Prop::Var(n.1.into()),
+};
+

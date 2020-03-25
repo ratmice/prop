@@ -1,7 +1,5 @@
-use crate::codespan;
 use crate::error::*;
-use crate::lex;
-use crate::parser;
+use crate::{codespan, parser, token_wrap};
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 
@@ -10,10 +8,14 @@ pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>>
         .iter()
         .enumerate()
         .map(|(index, s)| {
-            (
-                index,
-                parser::propParser::new().parse(lex::Tokens::from_string(s)),
-            )
+            (index, {
+                let tokens = token_wrap::Tokens::from_string(s);
+                let tokens = tokens.map(|x| {
+                    println!("{:?}", x);
+                    x
+                });
+                parser::propParser::new().parse(tokens)
+            })
         })
         .partition(|(_, r)| r.is_ok());
     if fail.is_empty() {
