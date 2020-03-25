@@ -1,6 +1,7 @@
-use unindent::unindent;
 use crate::error::*;
-use crate::{parser, lex, test_util};
+use crate::{lex, parser, test_util};
+use unindent::unindent;
+
 #[test]
 fn pretty_errors() -> Result<(), MainError> {
     let source = [

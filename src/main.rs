@@ -52,7 +52,6 @@ fn print_errors<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<(),
     }
 }
 
-
 fn main() -> Result<(), MainError> {
     let mut buf = std::io::BufReader::new(std::io::stdin());
     let mut s = Box::new(String::new());
