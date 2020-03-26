@@ -1,6 +1,28 @@
 use crate::error::*;
 use codespan_reporting::diagnostic::{Diagnostic, Label};
 use codespan_reporting::files::SimpleFiles;
+use std::ops::Range;
+
+fn boundary(r:Range<usize>, s:&str) -> Range<usize> {
+  let mut last = r.start;
+  let mut hit = false;
+
+  for boundary in s.char_indices() {
+    let in_range = boundary.0 >= r.start && boundary.0 <= r.end;
+
+    if in_range {
+        last = boundary.0;
+        hit = true;
+    } else {
+        if hit {
+            return last..boundary.0
+        } else {
+            return r
+        }
+    }
+  }
+  r
+}
 
 // needs much work.
 pub fn codespan<'a>(
@@ -34,13 +56,17 @@ pub fn codespan<'a>(
     let fmt_expected = |expected| format!("Expected: {}", join_expected(expected));
 
     let diag = match error {
-        InvalidToken { location } => Diagnostic::error()
+        // This one comes from lalrpop's built in lexer
+        // Since we don't use it we should never really see it.
+        InvalidToken { location } => {
+            Diagnostic::error()
             .with_message("Invalid token")
-            .with_labels(vec![Label::primary(file_id, *location..*location)]),
+            .with_labels(vec![Label::primary(file_id, boundary(*location..*location, data))])
+        },
         UnrecognizedEOF { location, expected } => Diagnostic::error()
             .with_message("Unexpected EOF")
             .with_labels(vec![
-                Label::primary(file_id, *location..*location).with_message(fmt_expected(expected))
+                Label::primary(file_id, boundary(*location..*location, data)).with_message(fmt_expected(expected))
             ]),
         UnrecognizedToken {
             token: (start, _tok, end),
@@ -48,18 +74,21 @@ pub fn codespan<'a>(
         } => Diagnostic::error()
             .with_message("Unrecognized token")
             .with_labels(vec![
-                Label::primary(file_id, *start..*end).with_message(fmt_expected(expected))
+                Label::primary(file_id, boundary(*start..*end, data)).with_message(fmt_expected(expected))
             ]),
         ExtraToken {
             token: (start, _tok, end),
         } => Diagnostic::error()
             .with_message("Extra token")
-            .with_labels(vec![Label::primary(file_id, *start..*end)])
+            .with_labels(vec![Label::primary(file_id, boundary(*start..*end, data))])
             .with_message("Extra token"),
-        User { error } => Diagnostic::error()
+        // From the logos lexer
+        User { error } => {
+            Diagnostic::error()
             .with_message("Invalid token")
-            .with_labels(vec![Label::primary(file_id, error.0.clone())])
-            .with_message("Invalid token"),
+            .with_labels(vec![Label::primary(file_id, boundary(error.0.clone(), data))])
+            .with_message("Invalid token")
+        }
     };
 
     (files, diag)
