@@ -6,7 +6,7 @@ name should probably change,
 Is intended to be a simplish but relatively complete example for intuitionistic propositional logic.
 It is a work in progress, and not as simple as it should be.
 
-##### Under what does it purport to show? 
+##### What does it purport to show? 
 
 * integrating the [lalrpop](http://lalrpop.github.io/lalrpop/) parser generator with an external lexer generator.
 * Fancy error messages with [codespan-reporting](https://github.com/brendanzab/codespan).

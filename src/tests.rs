@@ -69,18 +69,13 @@ fn fixme() -> Result<(), MainError> {
 }
 
 #[test]
-fn bad_unicode() -> () {
+fn bad_unicode() -> Result<(), MainError> {
     let invalid_source = [
         r"ₐₑₒₓₔₕₖₗₘₙₚₛₜ₀₁₂₃₄₅₆₇₈₉ ≔ ⊤", // Subscript cannot be initial character
         r"\α ≔ ⊤", // Unicode cannot start with slash.
     ];
 
-    for s in invalid_source.iter() {
-        match parser::propParser::new().parse(lex::Tokens::from_string(s)) {
-            Ok(_) => panic!(format!("accepted '{}'", s)),
-            Err(e) => println!("got an expected error: {:?}", e),
-        }
-    }
+    Ok(test_util::expect_fail(test_util::do_test(&invalid_source))?)
 }
 
 #[test]
