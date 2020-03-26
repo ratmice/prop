@@ -3,25 +3,25 @@ use codespan_reporting::diagnostic::{Diagnostic, Label};
 use codespan_reporting::files::SimpleFiles;
 use std::ops::Range;
 
-fn boundary(r:Range<usize>, s:&str) -> Range<usize> {
-  let mut last = r.start;
-  let mut hit = false;
+fn boundary(r: Range<usize>, s: &str) -> Range<usize> {
+    let mut last = r.start;
+    let mut hit = false;
 
-  for boundary in s.char_indices() {
-    let in_range = boundary.0 >= r.start && boundary.0 <= r.end;
+    for boundary in s.char_indices() {
+        let in_range = boundary.0 >= r.start && boundary.0 <= r.end;
 
-    if in_range {
-        last = boundary.0;
-        hit = true;
-    } else {
-        if hit {
-            return last..boundary.0
+        if in_range {
+            last = boundary.0;
+            hit = true;
         } else {
-            return r
+            if hit {
+                return last..boundary.0;
+            } else {
+                return r;
+            }
         }
     }
-  }
-  r
+    r
 }
 
 // needs much work.
@@ -58,36 +58,48 @@ pub fn codespan<'a>(
     let diag = match error {
         // This one comes from lalrpop's built in lexer
         // Since we don't use it we should never really see it.
-        InvalidToken { location } => {
-            Diagnostic::error()
+        InvalidToken { location } => Diagnostic::error()
             .with_message("Invalid token")
-            .with_labels(vec![Label::primary(file_id, boundary(*location..*location, data))])
-        },
+            .with_labels(vec![Label::primary(
+                file_id,
+                boundary(*location..*location, &data[*location..]),
+            )]),
         UnrecognizedEOF { location, expected } => Diagnostic::error()
             .with_message("Unexpected EOF")
-            .with_labels(vec![
-                Label::primary(file_id, boundary(*location..*location, data)).with_message(fmt_expected(expected))
-            ]),
+            .with_labels(vec![Label::primary(
+                file_id,
+                boundary(*location..*location, &data[*location..]),
+            )
+            .with_message(fmt_expected(expected))]),
         UnrecognizedToken {
             token: (start, _tok, end),
             expected,
         } => Diagnostic::error()
             .with_message("Unrecognized token")
-            .with_labels(vec![
-                Label::primary(file_id, boundary(*start..*end, data)).with_message(fmt_expected(expected))
-            ]),
+            .with_labels(vec![Label::primary(
+                file_id,
+                boundary(*start..*end, &data[*start..]),
+            )
+            .with_message(fmt_expected(expected))]),
         ExtraToken {
             token: (start, _tok, end),
         } => Diagnostic::error()
             .with_message("Extra token")
-            .with_labels(vec![Label::primary(file_id, boundary(*start..*end, data))])
+            .with_labels(vec![Label::primary(
+                file_id,
+                boundary(*start..*end, &data[*start..]),
+            )])
             .with_message("Extra token"),
         // From the logos lexer
         User { error } => {
+            let error_range = &error.0;
             Diagnostic::error()
-            .with_message("Invalid token")
-            .with_labels(vec![Label::primary(file_id, boundary(error.0.clone(), data))])
-            .with_message("Invalid token")
+                .with_message("Invalid token")
+                .with_labels(vec![Label::primary(
+                    file_id,
+                    boundary(error_range.clone(), &data[error_range.start..]),
+                )])
+                .with_message("Invalid token")
         }
     };
 
