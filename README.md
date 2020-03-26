@@ -1,3 +1,4 @@
+[![](https://github.com/ratmice/prop/workflows/Build%20and%20test/badge.svg)](https://github.com/ratmice/prop/actions)
 [![](https://tokei.rs/b1/github/ratmice/prop/)](https://github.com/ratmice/prop/).
 
 ### Prop
