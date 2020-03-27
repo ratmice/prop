@@ -75,6 +75,8 @@ fn bad_unicode() -> Result<(), MainError> {
     let invalid_source = [
         r"ₐₑₒₓₔₕₖₗₘₙₚₛₜ₀₁₂₃₄₅₆₇₈₉ ≔ ⊤", // Subscript cannot be initial character
         r"\α ≔ ⊤", // Unicode cannot start with slash.
+        r"SomeInvalidSyntaxEndingInUnicodeₐ fooₐ ≔ ⊤",
+        r"ℤSomeInvalidSyntaxₐ ℤfooₐ ≔ ⊤"
     ];
 
     Ok(test_util::expect_fail(test_util::do_test(&invalid_source))?)
