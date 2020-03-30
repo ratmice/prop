@@ -54,10 +54,37 @@ pub enum Token<'a> {
     #[token = "⊥"]
     Bot,
 
+    #[token = r"\qed"]
+    #[token = "□"]
+    QED,
+
+    #[token = r"\thus"]
+    #[token = "∴"]
+    Thus,
+
+    #[token = r"\case"]
+    Case,
+
+    #[token = r"\match"]
+    #[token = "‣"]
+    CaseLeg,
+
+    #[token = r"Prop"]
+    PropT,
+
     #[token = "("]
     LParen,
     #[token = ")"]
     RParen,
+
+    #[token = "["]
+    LBrack,
+    #[token = "]"]
+    RBrack,
+
+    // Name ↔ Name
+    #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
+    Name,
 
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
     // Variables can start with a slash character, a greek/math alphanumeric symbol,
@@ -97,4 +124,35 @@ pub enum Token<'a> {
 
     #[error]
     LexError,
+}
+
+impl<'a> std::fmt::Display for Token<'a> {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Token::Dot => write!(f, "."), 
+            Token::Abs => write!(f, "ⲗ"),
+            Token::Bot => write!(f, "⊥"),
+            Token::Def => write!(f, "≔"),
+            Token::Iff => write!(f, "↔"),
+            Token::Neg => write!(f, "¬"),
+            Token::Top => write!(f, "⊤"),
+            Token::QED => write!(f, "□"),
+            Token::Conj => write!(f, "∧"),
+            Token::Disj => write!(f, "∨"),
+            Token::Semi => write!(f, ";"),
+            Token::Thus => write!(f, "∴"),
+            Token::CaseLeg => write!(f, "‣"),
+            Token::Case => write!(f, "case"),
+            Token::Arrow => write!(f, "→"),
+            Token::Comma => write!(f, ","),
+            Token::Colon => write!(f, ":"),
+            Token::PropT => write!(f, "Prop"),
+            Token::LParen => write!(f, "("),
+            Token::RParen => write!(f, ")"),
+            Token::LBrack => write!(f, "["),
+            Token::RBrack => write!(f, "]"),
+            Token::Name(s)      => write!(f, "{}", s),
+        }
+    }
 }

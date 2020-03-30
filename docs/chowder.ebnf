@@ -1,0 +1,22 @@
+Name ::= [a-zA-Z][a-zA-Z0-9]*
+Bindings ::= (Binding ";") Binding?
+Binding ::= Name (":" Prop)? "≔" Stmt
+Stmt ::= Stmt "‣" Thus | Thus
+Thus ::= Thus "∴" PropOpt | Thus "." PropOpt | PropOpt
+PropOpt ::=
+()
+| Prop
+
+Prop ::= "¬" BinaryProp | BinaryProp
+BinaryProp ::=
+BinaryProp "∧" Atom
+| BinaryProp "∨" Atom
+| BinaryProp "→" Atom
+| BinaryProp "↔" Atom
+| BinaryProp "∧" "¬" Atom
+| BinaryProp "∨" "¬" Atom
+| BinaryProp "→" "¬" Atom
+| BinaryProp "↔" "¬" Atom
+| Atom
+
+Atom ::= "T" | "(" Prop ")" | Name

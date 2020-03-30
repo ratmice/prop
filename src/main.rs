@@ -1,4 +1,3 @@
-mod ast;
 mod codespan;
 mod error;
 mod lex;
@@ -80,7 +79,7 @@ fn main() -> Result<(), MainError> {
         }
         Ok(exprs) => {
             for bind in exprs.iter() {
-                println!("{}", bind);
+                println!("{:?}", bind);
             }
         }
     }

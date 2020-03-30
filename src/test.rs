@@ -84,6 +84,62 @@ fn bad_unicode() -> Result<(), MainError> {
 }
 
 #[test]
+fn thus() -> Result<(), MainError> {
+    let source = [
+        r"",
+        &unindent(
+            r#"ab_or_cd : (A ∧ B) ∨ (C ∧ D) → B ∨ D
+           ≔ ‣ (A ∧ B) ∨ (C ∧ D)          ;; +⚡1
+               ‣ A ∧ B                    ;; +⚡2
+                 ∴ B                      ;;      ∴ ∧E R
+                 ∴ B ∨ D.                 ;;      ∴ ∨I L
+               ‣ C ∧ D                    ;; +⚡2
+                 ∴ D                      ;;      ∴ ∧E R
+                 ∴ B ∨ D.                 ;;      ∴ ∨I R
+             ∴ B ∨ D.                     ;; -⚡2 ∴ ∨E
+             ∴ (A ∧ B) ∨ (C ∧ D) → B ∨ D. ;; -⚡1 ∴ →I
+           ;
+        "#,
+        ),
+        &unindent(
+            r#"ab_or_cd : (A ∧ B) ∨ (C ∧ D) ↔ (B ∧ A) ∨ (D ∧ C)
+           ≔ ‣‣(A ∧ B) ∨ (C ∧ D)                        ;; +⚡1, +⚡2
+               ‣ A ∧ B                                  ;; +⚡3
+                 ∴ B                                    ;; ∴ ∧E R
+                 ∴ A                                    ;; ∴ ∧E L
+                 ∴ B ∧ A                                ;; ∴ ∧I
+                 ∴ (B ∧ A) ∨ (D ∧ C).                   ;; ∴ ∨I L
+               ‣ C ∧ D                                  ;; +⚡3
+                 ∴ D                                    ;; ∴ ∧E R
+                 ∴ C                                    ;; ∴ ∧E L
+                 ∴ D ∧ C                                ;; ∴ ∧I
+                 ∴ (B ∧ A) ∨ (D ∧ C).                   ;; ∴ ∨I R
+               ∴ (B ∧ A) ∨ (D ∧ C).                     ;; -3 ∴ ∨E
+              ∴ (A ∧ B) ∨ (C ∧ D) → (B ∧ A) ∨ (D ∧ C).  ;; -2 ∴ →I
+
+             ‣‣ (B ∧ A) ∨ (D ∧ C)                       ;; +⚡1, +⚡2
+               ‣ B ∧ A                                  ;; +⚡3
+                 ∴ B ∧ A ∴ A                            ;; ∴ ∧E R
+                 ∴ B ∧ A ∴ B                            ;; ??, ∴ ∧E L
+                 ∴ A ∧ B                                ;; ∴ ∧I
+                 ∴ (A ∧ B) ∨ (C ∧ D).                   ;; ∴ ∨I L
+               ‣ D ∧ C                                  ;; +⚡3
+                 ∴ C                                    ;; ∴ ∧E R
+                 ∴ D                                    ;; ??,  ∴ ∧E L
+                 ∴ C ∧ D                                ;; ∴ ∧I
+                 ∴ (A ∧ B) ∨ (C ∧ D).                   ;; ∴ ∨I R
+               ∴ (A ∧ B) ∨ (C ∧ D).                     ;; -⚡3 ∴ ∨E
+              ∴ (B ∧ A) ∨ (D ∧ C) → (A ∧ B) ∨ (C ∧ D).  ;; -⚡2 ∴ →I
+
+             ∴ (A ∧ B) ∨ (C ∧ D) ↔ (B ∧ A) ∨ (D ∧ C).   ;; -⚡1 ∴ ↔I
+           ;
+        "#,
+        ),
+    ];
+    Ok(test_util::expect_success(test_util::do_test(&source))?)
+}
+
+#[test]
 fn good_ascii() -> Result<(), MainError> {
     let source = [
         r"id := A \to A",
