@@ -25,7 +25,7 @@ pub fn codespan<'a>(
         } else {
             format!(
                 "{} or {}",
-                v[0..(len - 2)].join(", "),
+                v[0..(len - 1)].join(", "),
                 get_string(v, len - 1)
             )
         }
