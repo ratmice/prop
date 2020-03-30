@@ -1,30 +1,29 @@
-// Bah humbug the auto-generated sources have comments above this comment.
-// #![allow(clippy::all)]
-use crate::lex;
+use crate::token_wrap;
 use crate::ast::{Prop, Expr, Binding, Typ};
 use std::rc::Rc;
+use token_wrap::*;
 grammar<'a>;
 
 extern {
   type Location = usize;
-  type Error = lex::LexicalError;
+  type Error = LexicalError;
 
-  enum lex::Token<'a> {
-	"⊥" => lex::Token::Bot,
-	"." => lex::Token::Dot,
-	"≔" => lex::Token::Def,
-	"→" => lex::Token::Arrow,
-	"↔" => lex::Token::Iff,
-	"¬" => lex::Token::Neg,
-	"ⲗ" => lex::Token::Abs,
-	"∧" => lex::Token::Conj,
-	"∨" => lex::Token::Disj,
-	"⊤" => lex::Token::Top,
-	"(" => lex::Token::LParen,
-	")" => lex::Token::RParen,
-	":" => lex::Token::Colon,
-	";" => lex::Token::Semi,
-	name => lex::Token::Name(<&'a str>),
+  enum Token<'a> {
+	"⊥" => Token::Bot,
+	"." => Token::Dot,
+	"≔" => Token::Def,
+	"→" => Token::Arrow,
+	"↔" => Token::Iff,
+	"¬" => Token::Neg,
+	"ⲗ" => Token::Abs,
+	"∧" => Token::Conj,
+	"∨" => Token::Disj,
+	"⊤" => Token::Top,
+	"(" => Token::LParen,
+	")" => Token::RParen,
+	":" => Token::Colon,
+	";" => Token::Semi,
+	name => Token::Name(<&'a str>),
   }
 }
 
