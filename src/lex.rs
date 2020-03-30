@@ -62,10 +62,6 @@ pub enum Token {
     #[token = ")"]
     RParen,
 
-    // Name ↔ Name
-    #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
-    Name,
-
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
     // Variables can start with a slash character, a greek/math alphanumeric symbol,
     // and ascii letters numbers, and subscripts (TODO superscripts)
@@ -94,7 +90,7 @@ pub enum Token {
     #[regex = r"[\\][a-zA-Z][_a-zA-Z0-9]*"]
     FancyNameAscii,
     #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
-    FancyNameUnicode,
+    Name,
 
     #[token = ":"]
     Colon,
@@ -102,11 +98,11 @@ pub enum Token {
     #[token = ";"]
     Semi,
 
-    #[token = r"\p{Whitespace}"]
-    Whitespace,
-
     #[regex = r"#.*\n"]
     Comment,
+
+    #[regex = r"\p{Whitespace}+"]
+    Whitespace,
 
     #[error]
     LexError,

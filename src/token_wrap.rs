@@ -39,7 +39,7 @@ impl<'a> std::fmt::Display for Token<'a> {
             Token::Colon => write!(f, ":"),
             Token::LParen => write!(f, "("),
             Token::RParen => write!(f, ")"),
-            Token::Name(s)      => write!(f, "{}", s),
+            Token::Name(s) => write!(f, "{}", s),
         }
     }
 }
@@ -76,7 +76,6 @@ impl<'a> Iterator for Tokens<'a> {
                 lex::Token::LexError => break Err(LexicalError(range)),
                 lex::Token::Name => break ok(Token::Name(lex.slice())),
                 lex::Token::FancyNameAscii => break ok(Token::Name(lex.slice())),
-                lex::Token::FancyNameUnicode => break ok(Token::Name(lex.slice())),
                 // And the rest are all unary members
                 lex::Token::Dot => break ok(Token::Dot),
                 lex::Token::Abs => break ok(Token::Abs),
