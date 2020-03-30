@@ -6,7 +6,7 @@ mod lex;
 #[cfg(test)]
 mod test_util;
 #[cfg(test)]
-mod tests;
+mod test;
 
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
