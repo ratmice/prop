@@ -2,6 +2,7 @@ mod ast;
 mod codespan;
 mod error;
 mod lex;
+mod token_wrap;
 
 #[cfg(test)]
 mod test_util;
@@ -11,9 +12,9 @@ mod test;
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
 use error::*;
+use token_wrap::*;
 use std::io::Read;
 use structopt::StructOpt;
-
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prop")]
 pub struct Opts {
@@ -58,7 +59,7 @@ fn main() -> Result<(), MainError> {
 
     // Not really how i'd like this to be.
     buf.read_to_string(&mut s)?;
-    let lexer = lex::Tokens::from_string(&s);
+    let lexer = Tokens::from_string(&s);
     let parse_result = parser::propParser::new().parse(lexer);
 
     match parse_result {

@@ -1,5 +1,7 @@
 use crate::error::*;
-use crate::{lex, parser, test_util};
+use crate::{parser, test_util};
+use crate::token_wrap::*;
+
 use unindent::unindent;
 
 #[test]
@@ -104,7 +106,7 @@ fn bad_ascii() -> Result<(), &'static str> {
 
     let mut num_fail = 0;
     for s in invalid_source.iter() {
-        let lexer = lex::Tokens::from_string(&s);
+        let lexer = Tokens::from_string(&s);
         match parser::propParser::new().parse(lexer) {
             Ok(_) => {
                 // bad
