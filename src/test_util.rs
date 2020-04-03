@@ -1,7 +1,7 @@
 use crate::codespan;
 use crate::error::*;
-use crate::token_wrap::*;
 use crate::parser;
+use crate::token_wrap::*;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 

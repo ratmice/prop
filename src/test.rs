@@ -1,6 +1,6 @@
 use crate::error::*;
-use crate::{parser, test_util};
 use crate::token_wrap::*;
+use crate::{parser, test_util};
 
 use unindent::unindent;
 

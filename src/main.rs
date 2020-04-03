@@ -5,16 +5,16 @@ mod lex;
 mod token_wrap;
 
 #[cfg(test)]
-mod test_util;
-#[cfg(test)]
 mod test;
+#[cfg(test)]
+mod test_util;
 
 use codespan_reporting::term::termcolor::StandardStream;
 use codespan_reporting::term::{self, ColorArg};
 use error::*;
-use token_wrap::*;
 use std::io::Read;
 use structopt::StructOpt;
+use token_wrap::*;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "prop")]
 pub struct Opts {

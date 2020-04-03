@@ -1,6 +1,6 @@
 use crate::lex;
-use std::ops::Range;
 use logos::Logos;
+use std::ops::Range;
 
 #[derive(Debug, Clone)]
 pub enum Token<'a> {

@@ -107,4 +107,3 @@ pub enum Token {
     #[error]
     LexError,
 }
-
