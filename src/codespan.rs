@@ -13,25 +13,18 @@ pub fn codespan<'a>(
     let mut files = SimpleFiles::new();
     let file_id = files.add(filename, data);
 
-    // fn join_expected(v: &Vec<String>) -> String {
-    let join_expected = |v: &Vec<String>| {
-        let len = v.len();
-        //  let get_string = |v: &Vec<String>, i: usize| v[i].to_string();
-        let get_string = |v: &Vec<String>, i: usize| unsafe { v.get_unchecked(i).to_string() };
-        if len == 0 {
-            String::new()
-        } else if len == 1 {
-            get_string(v, 0)
+    let join_expected = |expected: &Vec<String>| -> String {
+        if let Some((caboose, rest)) = expected.split_last() {
+            if rest.is_empty() {
+                format!("Expected: {}", &caboose)
+            } else {
+                format!("Expected: {} or {}", rest.join(", "), &caboose)
+            }
         } else {
-            format!(
-                "{} or {}",
-                v[0..(len - 1)].join(", "),
-                get_string(v, len - 1)
-            )
+            // ??
+            "Didn't know what to expect?".to_string()
         }
     };
-
-    let fmt_expected = |expected| format!("Expected: {}", join_expected(expected));
 
     let diag = match error {
         InvalidToken { location } => Diagnostic::error()
@@ -40,7 +33,7 @@ pub fn codespan<'a>(
         UnrecognizedEOF { location, expected } => Diagnostic::error()
             .with_message("Unexpected EOF")
             .with_labels(vec![
-                Label::primary(file_id, *location..*location).with_message(fmt_expected(expected))
+                Label::primary(file_id, *location..*location).with_message(join_expected(expected))
             ]),
         UnrecognizedToken {
             token: (start, _tok, end),
@@ -48,7 +41,7 @@ pub fn codespan<'a>(
         } => Diagnostic::error()
             .with_message("Unrecognized token")
             .with_labels(vec![
-                Label::primary(file_id, *start..*end).with_message(fmt_expected(expected))
+                Label::primary(file_id, *start..*end).with_message(join_expected(expected))
             ]),
         ExtraToken {
             token: (start, _tok, end),
