@@ -1,12 +1,11 @@
-use crate::token_wrap;
+use crate::lex::Token;
 use crate::ast::{Prop, Expr, Binding, Typ};
 use std::rc::Rc;
-use token_wrap::*;
 grammar<'a>;
 
 extern {
   type Location = usize;
-  type Error = LexicalError;
+  type Error = usize;
 
   enum Token<'a> {
 	"⊥" => Token::Bot,
@@ -23,8 +22,14 @@ extern {
 	")" => Token::RParen,
 	":" => Token::Colon,
 	";" => Token::Semi,
-	name => Token::Name(<&'a str>),
+	fancy_name_unicode => Token::Name(<&'a str>),
+	fancy_name_ascii => Token::FancyNameAscii(<&'a str>),
   }
+}
+
+name: &'a str = {
+  fancy_name_unicode,
+  fancy_name_ascii,
 }
 
 pub prop = Semi<Binding>;
