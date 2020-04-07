@@ -1,19 +1,25 @@
 use crate::codespan;
 use crate::error::*;
+use crate::lex;
 use crate::parser;
-use crate::token_wrap::*;
 use codespan_reporting::term;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use logos::Logos;
 
 pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>> {
     let (_pass, fail): (Vec<_>, Vec<_>) = sources
         .iter()
         .enumerate()
         .map(|(index, s)| {
-            (
-                index,
-                parser::propParser::new().parse(Tokens::from_string(s)),
-            )
+            (index, {
+                parser::propParser::new().parse(lex::Token::lexer(&s).spanned().map(|(t, r)| {
+                    if t == lex::Token::LexError {
+                        Err(r.start)
+                    } else {
+                        Ok((r.start, t, r.end))
+                    }
+                }))
+            })
         })
         .partition(|(_, r)| r.is_ok());
     if fail.is_empty() {
@@ -39,8 +45,6 @@ pub fn expect_success<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Resu
                 let config = codespan_reporting::term::Config::default();
                 let (files, diagnostic) = codespan::codespan("foo", source, error);
 
-                eprintln!("capture stderr?");
-                println!("capture stdout?");
                 term::emit(&mut writer.lock(), &config, &files, &diagnostic)?;
             }
             Err(MainError::SomethingWentAwryAndStuffWasPrinted)

@@ -1,11 +1,11 @@
+pub use logos::Lexer;
 use logos::Logos;
 
-// Notably absent from the above, present in the below are
-// Whitespace, EOF, LexError
-#[derive(Logos, Debug)]
-pub enum Token {
-    #[end]
-    EOF,
+#[derive(Logos, Debug, Clone, PartialEq)]
+#[logos(trivia = r"(\p{Whitespace}+|;;.*\n)")]
+pub enum Token<'a> {
+    #[token = ","]
+    Comma,
 
     #[token = "."]
     Dot,
@@ -57,10 +57,33 @@ pub enum Token {
     #[token = "⊥"]
     Bot,
 
+    #[token = r"\qed"]
+    #[token = "□"]
+    QED,
+
+    #[token = r"\thus"]
+    #[token = "∴"]
+    Thus,
+
+    #[token = r"\case"]
+    Case,
+
+    #[token = r"\match"]
+    #[token = "‣"]
+    CaseLeg,
+
+    #[token = r"Prop"]
+    PropT,
+
     #[token = "("]
     LParen,
     #[token = ")"]
     RParen,
+
+    #[token = "["]
+    LBrack,
+    #[token = "]"]
+    RBrack,
 
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
     // Variables can start with a slash character, a greek/math alphanumeric symbol,
@@ -87,10 +110,10 @@ pub enum Token {
     // \x{1d62}-\x{1d6a}
     //
     // FancyNameAscii ↔ FancyNameUnicode
-    #[regex = r"[\\][a-zA-Z][_a-zA-Z0-9]*"]
-    FancyNameAscii,
-    #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
-    Name,
+    #[regex(r"[\\][a-zA-Z][_a-zA-Z0-9]*", |lex| lex.slice())]
+    FancyNameAscii(&'a str),
+    #[regex(r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*", |lex| lex.slice())]
+    Name(&'a str),
 
     #[token = ":"]
     Colon,
@@ -98,12 +121,38 @@ pub enum Token {
     #[token = ";"]
     Semi,
 
-    #[regex = r"#.*\n"]
-    Comment,
-
-    #[regex = r"\p{Whitespace}+"]
-    Whitespace,
-
     #[error]
     LexError,
+}
+
+impl<'a> std::fmt::Display for Token<'a> {
+    #[rustfmt::skip]
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Token::Dot => write!(f, "."), 
+            Token::Abs => write!(f, "ⲗ"),
+            Token::Bot => write!(f, "⊥"),
+            Token::Def => write!(f, "≔"),
+            Token::Iff => write!(f, "↔"),
+            Token::Neg => write!(f, "¬"),
+            Token::Top => write!(f, "⊤"),
+            Token::QED => write!(f, "□"),
+            Token::Conj => write!(f, "∧"),
+            Token::Disj => write!(f, "∨"),
+            Token::Semi => write!(f, ";"),
+            Token::Thus => write!(f, "∴"),
+            Token::CaseLeg => write!(f, "‣"),
+            Token::Case => write!(f, "case"),
+            Token::Arrow => write!(f, "→"),
+            Token::Comma => write!(f, ","),
+            Token::Colon => write!(f, ":"),
+            Token::PropT => write!(f, "Prop"),
+            Token::LParen => write!(f, "("),
+            Token::RParen => write!(f, ")"),
+            Token::LBrack => write!(f, "["),
+            Token::RBrack => write!(f, "]"),
+            Token::Name(s) | Token::FancyNameAscii(s) => write!(f, "{}", s),
+            Token::LexError => write!(f, "Lexical Error"),
+        }
+    }
 }

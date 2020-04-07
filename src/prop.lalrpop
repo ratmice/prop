@@ -1,42 +1,58 @@
-use crate::token_wrap;
-use crate::ast::{Prop, Expr, Binding, Typ};
-use std::rc::Rc;
-use token_wrap::*;
+use crate::lex::Token;
 grammar<'a>;
 
 extern {
   type Location = usize;
-  type Error = LexicalError;
+  type Error = usize;
 
   enum Token<'a> {
+	"ⲗ" => Token::Abs,
 	"⊥" => Token::Bot,
 	"." => Token::Dot,
 	"≔" => Token::Def,
 	"→" => Token::Arrow,
 	"↔" => Token::Iff,
 	"¬" => Token::Neg,
-	"ⲗ" => Token::Abs,
+	"⊤" => Token::Top,
 	"∧" => Token::Conj,
 	"∨" => Token::Disj,
-	"⊤" => Token::Top,
 	"(" => Token::LParen,
 	")" => Token::RParen,
+	"[" => Token::LBrack,
+	"]" => Token::RBrack,
 	":" => Token::Colon,
+	"," => Token::Comma,
 	";" => Token::Semi,
-	name => Token::Name(<&'a str>),
+	"∴" => Token::Thus,
+	"‣" => Token::CaseLeg,
+	"□" => Token::QED,
+	"Prop" => Token::PropT,
+	"case" => Token::Case,
+	fancy_name_unicode => Token::Name(<&'a str>),
+	fancy_name_ascii => Token::FancyNameAscii(<&'a str>),
   }
+}
+
+name: &'a str = {
+  fancy_name_unicode,
+  fancy_name_ascii,
 }
 
 pub prop = Semi<Binding>;
 
-Binding: Rc<Binding> = {
-  <n:name> ":" <t:Type> "≔" <e:ExprTerm> => Rc::new(Binding::Bind(n.to_string(), Rc::new(e), Some(t))),
-  <n:name> "≔" <e:ExprTerm> => Rc::new(Binding::Bind(n.to_string(), Rc::new(e), None)),
+Binding: () = {
+    <_n:name> "≔" <_s:Stmt> => (),
+    <_n:name> ":" <_t:Prop> "≔" <_s:Stmt> => (),
+}
+Stmt: () = {
+  <_s: Stmt> "‣" <_t:Thus> => (),
+  Thus => (),
 }
 
-// Currently types can only be added to top-level bindings.
-Type: Typ = {
-  <p: Prop> => Typ::Typ(p),
+Thus: () = {
+  <_t:Thus> <_p: ("∴" PropOpt)> => (),
+  <_t:Thus> "." <_p:PropOpt> => (),
+  PropOpt
 }
 
 Semi<T>: Vec<T> = {
@@ -50,34 +66,31 @@ Semi<T>: Vec<T> = {
   }
 }
 
-ExprTerm: Expr = {
-  "ⲗ" <n:name> "." <e:ExprTerm> => Expr::Lambda(Rc::new(Binding::Var(n.to_string(), None)), Rc::new(e), None),
-  // wrong...
-  <p:Prop> <e:ExprTerm> => Expr::App(Rc::new(e), Rc::new(Expr::Prop(Rc::new(p)))),
-  <p: Prop> => Expr::Prop(Rc::new(p)),
-}
-
-Prop: Prop = {
-  "¬" <t:BinaryProp> => Prop::Neg(Rc::new(t)),
+Prop: () = {
+  "¬" <_t:BinaryProp> => (),
   BinaryProp,
 }
 
-BinaryProp: Prop = {
-  <p1:BinaryProp> "∧" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(p2)),
-  <p1:BinaryProp> "∨" <p2:Term> => Prop::Or(Rc::new(p1), Rc::new(p2)),
-  <p1:BinaryProp> "→" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(p2)),
-  <p1:BinaryProp> "↔" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(p2)),
-
-  <p1:BinaryProp> "∧" "¬" <p2:Term> => Prop::And(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
-  <p1:BinaryProp> "∨" "¬" <p2:Term> => Prop::Or(Rc::new(p1),  Rc::new(Prop::Neg(Rc::new(p2)))),
-  <p1:BinaryProp> "→" "¬" <p2:Term> => Prop::Imp(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
-  <p1:BinaryProp> "↔" "¬" <p2:Term> => Prop::Iff(Rc::new(p1), Rc::new(Prop::Neg(Rc::new(p2)))),
-  Term,
+PropOpt: () = {
+  Prop,
+  (),
 }
 
-Term: Prop = {
-  "⊤" => Prop::True,
-  "(" <p:Prop> ")" => p,
-  <n:name> => Prop::Var(n.to_string()),
+BinaryProp: () = {
+  <_p1:BinaryProp> "∧" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∨" <_p2:Atom> => (),
+  <_p1:BinaryProp> "→" <_p2:Atom> => (),
+  <_p1:BinaryProp> "↔" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∧" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∨" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "→" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "↔" "¬" <_p2:Atom> => (),
+  Atom,
+}
+
+Atom: () = {
+  "⊤" => (),
+  "(" Prop ")" => (),
+  <_n:name> => (),
 };
 

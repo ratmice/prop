@@ -1,0 +1,247 @@
+\documentclass{article}
+\usepackage{bussproofs}
+\usepackage{amsfonts,amsmath,amssymb,amsthm}
+\usepackage{amsmath}
+\usepackage{marvosym}
+\usepackage{unicode-math}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{newunicodechar}
+\usepackage{fancyvrb}
+\AtBeginDocument{\setmainfont{XITS-Regular.otf}}
+\AtBeginDocument{\setmathfont{XITSMath-Regular.otf}}
+\AtBeginDocument{\newfontfamily{\mathfont}{FreeMono.otf}}
+
+
+\AtBeginDocument{\newunicodechar{→} {\mathfont{→}}}
+\AtBeginDocument{\newunicodechar{∀} {\ensuremath{\forall}}}
+\AtBeginDocument{\newunicodechar{∃} {\ensuremath{\exists}}}
+\AtBeginDocument{\newunicodechar{‣} {\mathfont{‣}}}
+\AtBeginDocument{\newunicodechar{∴} {\mathfont{∴}}}
+\AtBeginDocument{\newunicodechar{≔} {\mathfont{≔}}}
+\AtBeginDocument{\newunicodechar{⋮} {\mathfont{⋮}}}
+\AtBeginDocument{\newunicodechar{∧} {\mathfont{∧}}}
+\AtBeginDocument{\newunicodechar{∨} {\mathfont{∨}}}
+\AtBeginDocument{\newunicodechar{⚡} {\mbox{\Lightning}}}
+
+\title{"Chowder" proof checking inference rules augmented with proposed syntax}
+\author{matt rice}
+
+\newenvironment{bprooftree0}
+  {\leavevmode\hbox\bgroup}
+  {\DisplayProof\egroup}
+\newenvironment{bprooftree}
+  {\noindent\hbox\bgroup}
+  {\DisplayProof\egroup}
+
+\newcommand{\charge}[2]{%
+    \LeftLabel{$\smalltriangleright$}
+    \RightLabel{$^+\text{\Lightning}\alpha$}
+    \AxiomC{}%
+    \UnaryInfC{#1}%
+    \noLine%
+    \UnaryInfC{$\vdots$}%
+    \noLine%
+    \UnaryInfC{#2.}}%
+
+\newcommand{\discharge}[1]{%
+	\LeftLabel{$^-\text{\Lightning}\alpha$}%
+	\RightLabel{#1}%
+}%
+
+\newcommand{\thus}[1]{%
+  $\therefore$ #1
+}
+\newcommand{\biimpl}{\leftrightarrow}
+\newcommand{\hsep}{\vspace{1em}\par}
+\newcommand{\vsep}{\hspace{0.5em}%
+%\vrule%
+\hspace{0.5em}}
+
+\begin{document}
+
+    \maketitle
+
+    \section{Inference rules}
+    Natural deduction rules augmented with chowder syntax
+    \description
+    \item{$\smalltriangleright$} acts as n-ary case analysis.
+    \item{$\therefore$} acts like the natural deduction mid-line in syntax.
+    \par
+    \vspace{1em}
+    Conjunction:
+        \begin{bprooftree}
+                \AxiomC{A}
+                \AxiomC{B}
+            \RightLabel{\thus{$\wedge$I}}
+            \BinaryInfC{A $\wedge$ B}
+        \end{bprooftree}
+        \begin{bprooftree}
+                    \AxiomC{A $\wedge$ B}
+            \RightLabel{\thus{$\wedge E_L$}}
+            \UnaryInfC{A}
+        \end{bprooftree}
+        \begin{bprooftree}
+            \AxiomC{A $\wedge$ B}
+            \RightLabel{\thus{$\wedge E_R$}}
+            \UnaryInfC{B}
+        \end{bprooftree}
+\hsep
+    Disjunction:
+    \begin{bprooftree}
+                \AxiomC{A}
+        \LeftLabel{}
+        \RightLabel{\thus{$\vee I_L$}}
+        \UnaryInfC{A $\vee$ B}
+    \end{bprooftree}
+    \begin{bprooftree}
+            \AxiomC{B}
+        \RightLabel{\thus{$\vee I_R$}}
+        \UnaryInfC{ A $\vee$ B}
+    \end{bprooftree}
+    \begin{bprooftree}
+        \AxiomC{A $\vee$ B}
+        \charge{A}{C}
+        \charge{B}{C}
+    \discharge{\thus{$\vee E$}}
+    \TrinaryInfC{C}
+\end{bprooftree}
+
+\hsep
+Implication:
+        \begin{bprooftree}
+            \charge{A}{B}
+            \discharge{\thus{$\to$I}}
+            \UnaryInfC{A $\to$ B}
+        \end{bprooftree}
+        \begin{bprooftree}
+            \AxiomC{$\neg$A}
+            \AxiomC{A}
+            \RightLabel{\thus{$\neg$E}}
+            \BinaryInfC{$\bot$}
+    \end{bprooftree}
+Negation:
+    \begin{bprooftree}
+        \charge{A}{$\bot$}
+        \discharge{\thus{$\neg$I}}
+        \UnaryInfC{$\neg$A}
+    \end{bprooftree}
+    \begin{bprooftree}
+            \AxiomC{A $\to$ B}
+            \AxiomC{A}
+            \RightLabel{\thus{$\to$E}}
+            \BinaryInfC{B}
+    \end{bprooftree}
+
+\hsep
+
+Top:
+    \begin{bprooftree}
+        \AxiomC{}
+        \RightLabel{$\top$I}
+        \UnaryInfC{$\top$}
+    \end{bprooftree}
+
+\hsep
+
+Bot:
+    \begin{bprooftree}
+        \AxiomC{$\bot$}
+        \RightLabel{\thus{$\bot$E}}
+        \UnaryInfC{A}
+    \end{bprooftree}
+\hsep
+
+Bi-implication:
+
+    \begin{bprooftree}
+        \charge{A}{B}
+        \charge{B}{A}
+        \discharge{\thus{$\leftrightarrow$I}}
+        \BinaryInfC{A $\biimpl$ B}
+    \end{bprooftree}
+    \begin{bprooftree}
+        \AxiomC{A $\biimpl$ B}
+        \AxiomC{A}
+        \RightLabel{\thus{$\biimpl{E_L}$}}
+        \BinaryInfC{B}
+    \end{bprooftree}
+    \begin{bprooftree}
+        \AxiomC{A $\biimpl$ B}
+        \AxiomC{B}
+        \RightLabel{\thus{$\biimpl{E_R}$}}
+        \BinaryInfC{A}
+    \end{bprooftree}
+\section{EBNF} 
+\begin{Verbatim}
+Name ::= [a-zA-Z][a-zA-Z0-9]*
+Bindings ::= (Binding ";") Binding?
+Binding ::= Name (":" Prop)? "≔" Stmt
+Stmt ::= Stmt "‣" Thus | Thus
+Thus ::= Thus "∴" PropOpt | Thus "." PropOpt | PropOpt
+PropOpt ::= 
+()
+| Prop
+
+Prop ::= "¬" BinaryProp | BinaryProp
+BinaryProp ::=
+BinaryProp "∧" Atom
+| BinaryProp "∨" Atom
+| BinaryProp "→" Atom
+| BinaryProp "↔" Atom
+| BinaryProp "∧" "¬" Atom
+| BinaryProp "∨" "¬" Atom
+| BinaryProp "→" "¬" Atom
+| BinaryProp "↔" "¬" Atom
+| Atom
+Atom ::= "T" | "(" Prop ")" | Name
+\end{Verbatim}
+
+\section{Some unchecked proofs that parse.}
+
+\begin{Verbatim}
+ab_or_cd: (A ∧ B) ∨ (C ∧ D) → B ∨ D
+≔ ‣ (A ∧ B) ∨ (C ∧ D)           ;; +⚡1
+   ‣ A ∧ B                      ;; +⚡2
+    ∴ B                         ;;      ∴ ∧E R
+    ∴ B ∨ D.                    ;;      ∴ ∨I L
+   ‣ C ∧ D                      ;; +⚡2
+    ∴ D                         ;;      ∴ ∧E R
+    ∴ B ∨ D.                    ;;      ∴ ∨I R
+   ∴ B ∨ D.                     ;; -⚡2 ∴ ∨E
+  ∴ (A ∧ B) ∨ (C ∧ D) → B ∨ D.  ;; -⚡1 ∴ →I
+  ;
+\end{Verbatim}
+
+
+\begin{Verbatim}
+iff_and_or: (A ∧ B) ∨ (C ∧ D) ↔ (B ∧ A) ∨ (D ∧ C)
+≔ ‣‣(A ∧ B) ∨ (C ∧ D)                        ;; +⚡1, +⚡2
+    ‣ A ∧ B                                  ;; +⚡3
+      ∴ B                                    ;; ∴ ∧E R
+      ∴ A                                    ;; ∴ ∧E L
+      ∴ B ∧ A                                ;; ∴ ∧I
+      ∴ (B ∧ A) ∨ (D ∧ C).                   ;; ∴ ∨I L
+    ‣ C ∧ D                                  ;; +⚡3
+      ∴ D                                    ;; ∴ ∧E R
+      ∴ C                                    ;; ∴ ∧E L
+      ∴ D ∧ C                                ;; ∴ ∧I
+      ∴ (B ∧ A) ∨ (D ∧ C).                   ;; ∴ ∨I L
+    ∴ (B ∧ A) ∨ (D ∧ C).                     ;; -3 ∴ ∨E
+   ∴ (A ∧ B) ∨ (C ∧ D) → (B ∧ A) ∨ (D ∧ C).  ;; -2 ∴ →I
+  ‣‣ (B ∧ A) ∨ (D ∧ C)                       ;; +⚡1, +⚡2
+    ‣ B ∧ A                                  ;; +⚡3
+     ∴ B ∧ A ∴ A                             ;; ∴ ∧E R
+     ∴ B ∧ A ∴ B                             ;; ??, ∴ ∧E L
+     ∴ A ∧ B                                 ;; ∴ ∧I
+     ∴ (A ∧ B) ∨ (C ∧ D).                    ;; ∴ ∨I L
+    ‣ D ∧ C                                  ;; +⚡3
+     ∴ C                                     ;; ∴ ∧E R
+     ∴ D                                     ;; ??,  ∴ ∧E L
+     ∴ C ∧ D                                 ;; ∴ ∧I
+     ∴ (A ∧ B) ∨ (C ∧ D).                    ;; ∴ ∨I R
+    ∴ (A ∧ B) ∨ (C ∧ D).                     ;; -⚡3 ∴ ∨E
+   ∴ (B ∧ A) ∨ (D ∧ C) → (A ∧ B) ∨ (C ∧ D).  ;; -⚡2 ∴ →I
+  ∴ (A ∧ B) ∨ (C ∧ D) ↔ (B ∧ A) ∨ (D ∧ C).   ;; -⚡1 ∴ ↔I
+  ;
+\end{Verbatim}
+\end{document}
