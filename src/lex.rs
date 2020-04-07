@@ -2,8 +2,11 @@ pub use logos::Lexer;
 use logos::Logos;
 
 #[derive(Logos, Debug, Clone, PartialEq)]
-#[logos(trivia = r"(\p{Whitespace}+|#.*\n)")]
+#[logos(trivia = r"(\p{Whitespace}+|;;.*\n)")]
 pub enum Token<'a> {
+    #[token = ","]
+    Comma,
+
     #[token = "."]
     Dot,
 
@@ -82,10 +85,6 @@ pub enum Token<'a> {
     #[token = "]"]
     RBrack,
 
-    // Name ↔ Name
-    #[regex = r"[a-zA-Z][_a-zA-Z0-9]*"]
-    Name,
-
     // Since this uses Coptic letters for keywords all greek letters can be used as variable names.
     // Variables can start with a slash character, a greek/math alphanumeric symbol,
     // and ascii letters numbers, and subscripts (TODO superscripts)
@@ -152,7 +151,8 @@ impl<'a> std::fmt::Display for Token<'a> {
             Token::RParen => write!(f, ")"),
             Token::LBrack => write!(f, "["),
             Token::RBrack => write!(f, "]"),
-            Token::Name(s)      => write!(f, "{}", s),
+            Token::Name(s) | Token::FancyNameAscii(s) => write!(f, "{}", s),
+            Token::LexError => write!(f, "Lexical Error"),
         }
     }
 }

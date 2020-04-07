@@ -41,17 +41,17 @@ name: &'a str = {
 pub prop = Semi<Binding>;
 
 Binding: () = {
-    <n:name> "≔" <s:Stmt> => (),
-    <n:name> ":" <t:Prop> "≔" <s:Stmt> => (),
+    <_n:name> "≔" <_s:Stmt> => (),
+    <_n:name> ":" <_t:Prop> "≔" <_s:Stmt> => (),
 }
 Stmt: () = {
-  <s: Stmt> "‣" <t:Thus> => (),
+  <_s: Stmt> "‣" <_t:Thus> => (),
   Thus => (),
 }
 
 Thus: () = {
-  <t:Thus> <p: ("∴" PropOpt)> => (),
-  <t:Thus> "." <p:PropOpt> => (),
+  <_t:Thus> <_p: ("∴" PropOpt)> => (),
+  <_t:Thus> "." <_p:PropOpt> => (),
   PropOpt
 }
 
@@ -67,7 +67,7 @@ Semi<T>: Vec<T> = {
 }
 
 Prop: () = {
-  "¬" <t:BinaryProp> => (),
+  "¬" <_t:BinaryProp> => (),
   BinaryProp,
 }
 
@@ -77,20 +77,20 @@ PropOpt: () = {
 }
 
 BinaryProp: () = {
-  <p1:BinaryProp> "∧" <p2:Atom> => (),
-  <p1:BinaryProp> "∨" <p2:Atom> => (),
-  <p1:BinaryProp> "→" <p2:Atom> => (),
-  <p1:BinaryProp> "↔" <p2:Atom> => (),
-  <p1:BinaryProp> "∧" "¬" <p2:Atom> => (),
-  <p1:BinaryProp> "∨" "¬" <p2:Atom> => (),
-  <p1:BinaryProp> "→" "¬" <p2:Atom> => (),
-  <p1:BinaryProp> "↔" "¬" <p2:Atom> => (),
+  <_p1:BinaryProp> "∧" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∨" <_p2:Atom> => (),
+  <_p1:BinaryProp> "→" <_p2:Atom> => (),
+  <_p1:BinaryProp> "↔" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∧" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "∨" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "→" "¬" <_p2:Atom> => (),
+  <_p1:BinaryProp> "↔" "¬" <_p2:Atom> => (),
   Atom,
 }
 
 Atom: () = {
   "⊤" => (),
   "(" Prop ")" => (),
-  <n:name> => (),
+  <_n:name> => (),
 };
 
