@@ -3,7 +3,6 @@ use crate::error::*;
 use crate::lex;
 use crate::parser;
 use codespan_reporting::term;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
 use logos::Logos;
 
 pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>> {
@@ -33,19 +32,17 @@ pub fn do_test<'a>(sources: &[&'a str]) -> Result<(), Vec<(&'a str, Error<'a>)>>
     }
 }
 
-// FIXME these 2 and print_errors can involve less duplication of slightly different code
-// The difference: stdout vs stderr and ColorChoice::Never vs structopt which
-// causes problems with cargo test implicit arguments.
 pub fn expect_success<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<(), MainError> {
     match result {
         Ok(()) => Ok(()),
         Err(e) => {
             for (source, error) in e.iter() {
-                let writer = StandardStream::stdout(ColorChoice::Never);
+                let mut writer = codespan_reporting::term::termcolor::Buffer::no_color();
                 let config = codespan_reporting::term::Config::default();
                 let (files, diagnostic) = codespan::codespan("foo", source, error);
 
-                term::emit(&mut writer.lock(), &config, &files, &diagnostic)?;
+                term::emit(&mut writer, &config, &files, &diagnostic)?;
+                eprintln!("{}", std::str::from_utf8(writer.as_slice()).unwrap())
             }
             Err(MainError::SomethingWentAwryAndStuffWasPrinted)
         }
@@ -61,11 +58,12 @@ pub fn expect_fail<'a>(result: Result<(), Vec<(&'a str, Error<'a>)>>) -> Result<
 
         Err(e) => {
             for (source, error) in e.iter() {
-                let writer = StandardStream::stdout(ColorChoice::Never);
+                let mut writer = codespan_reporting::term::termcolor::Buffer::no_color();
                 let config = codespan_reporting::term::Config::default();
                 let (files, diagnostic) = codespan::codespan("foo", source, error);
 
-                term::emit(&mut writer.lock(), &config, &files, &diagnostic)?;
+                term::emit(&mut writer, &config, &files, &diagnostic)?;
+                eprintln!("{}", std::str::from_utf8(writer.as_slice()).unwrap())
             }
             Ok(())
         }
