@@ -9,8 +9,9 @@ edition = "2018"
 [dependencies]
 lalrpop = "0.18"
 lalrpop-util = "0.18"
-logos = "0.10.0"
+logos = "0.11.0-rc2"
 regex = "1"
+logos-derive = "0.11.0-rc3"
 codespan-reporting = "0.9" 
 structopt = "0.3.12"
 

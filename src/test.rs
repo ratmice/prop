@@ -1,6 +1,7 @@
 use crate::error::*;
-use crate::token_wrap::*;
+use crate::lex;
 use crate::{parser, test_util};
+use logos::Logos;
 
 use unindent::unindent;
 
@@ -108,8 +109,16 @@ fn bad_ascii() -> Result<(), &'static str> {
 
     let mut num_fail = 0;
     for s in invalid_source.iter() {
-        let lexer = Tokens::from_string(&s);
-        match parser::propParser::new().parse(lexer) {
+        let lex = lex::Token::lexer(&s).spanned();
+        let parse_result = parser::propParser::new().parse(lex.map(|(t, r)| {
+            if t == lex::Token::LexError {
+                Err(r.start)
+            } else {
+                Ok((r.start, t, r.end))
+            }
+        }));
+
+        match parse_result {
             Ok(_) => {
                 // bad
                 println!("parsed but shouldn't: {}", s);
@@ -117,7 +126,7 @@ fn bad_ascii() -> Result<(), &'static str> {
             }
             Err(e) => {
                 // good
-                println!("expected error: {}", e);
+                println!("expected error: {:?}", e);
                 ()
             }
         }

@@ -1,12 +1,9 @@
+pub use logos::Lexer;
 use logos::Logos;
 
-// Notably absent from the above, present in the below are
-// Whitespace, EOF, LexError
-#[derive(Logos, Debug)]
-pub enum Token {
-    #[end]
-    EOF,
-
+#[derive(Logos, Debug, Clone, PartialEq)]
+#[logos(trivia = r"(\p{Whitespace}+|#.*\n)")]
+pub enum Token<'a> {
     #[token = "."]
     Dot,
 
@@ -87,22 +84,16 @@ pub enum Token {
     // \x{1d62}-\x{1d6a}
     //
     // FancyNameAscii ↔ FancyNameUnicode
-    #[regex = r"[\\][a-zA-Z][_a-zA-Z0-9]*"]
-    FancyNameAscii,
-    #[regex = r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*"]
-    Name,
+    #[regex(r"[\\][a-zA-Z][_a-zA-Z0-9]*", |lex| lex.slice())]
+    FancyNameAscii(&'a str),
+    #[regex(r"[a-zA-Z\p{Greek}\x{1d49c}-\x{1d59f}\x{2100}-\x{214f}][_a-zA-Z0-9\x{207f}-\x{2089}\x{2090}-\x{209c}\x{1d62}-\x{1d6a}]*", |lex| lex.slice())]
+    Name(&'a str),
 
     #[token = ":"]
     Colon,
 
     #[token = ";"]
     Semi,
-
-    #[regex = r"#.*\n"]
-    Comment,
-
-    #[regex = r"\p{Whitespace}+"]
-    Whitespace,
 
     #[error]
     LexError,

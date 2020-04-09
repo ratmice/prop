@@ -51,7 +51,7 @@ pub fn codespan<'a>(
             .with_message("Extra token"),
         User { error } => Diagnostic::error()
             .with_message("Invalid token")
-            .with_labels(vec![Label::primary(file_id, error.0.clone())])
+            .with_labels(vec![Label::primary(file_id, *error..*error)])
             .with_message("Invalid token"),
     };
 
